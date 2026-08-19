@@ -15,16 +15,28 @@ public class Elora {
         System.out.println("What can I do for you?");
         System.out.println(line);
 
+        String[] tasks = new String[100];
+        int taskCount = 0;
+
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String input = scanner.nextLine();
             System.out.println(line);
+
             if (input.equals("bye")) {
                 System.out.println("Bye for now, friend. Until our paths cross again!");
                 System.out.println(line);
                 break;
+            } else if (input.equals("list")) {
+                for (int i = 0; i < taskCount; i++) {
+                    System.out.println((i + 1) + ". " + tasks[i]);
+                }
+            } else {
+                tasks[taskCount] = input;
+                taskCount++;
+                System.out.println("added: " + input);
             }
-            System.out.println("I hear you: " + input);
+
             System.out.println(line);
         }
         scanner.close();
