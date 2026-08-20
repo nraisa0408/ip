@@ -44,7 +44,7 @@ public class Elora {
                 System.out.println("  " + tasks[index]);
             } else if (input.startsWith("todo ")) {
                 String description = input.substring(5);
-                tasks[taskCount] = new Task(description, 'T');
+                tasks[taskCount] = new Todo(description);
                 taskCount++;
                 System.out.println("Got it. I've added this task:");
                 System.out.println("  " + tasks[taskCount - 1]);
@@ -52,9 +52,7 @@ public class Elora {
             } else if (input.startsWith("deadline ")) {
                 String remainder = input.substring(9);
                 String[] parts = remainder.split(" /by ", 2);
-                Task t = new Task(parts[0], 'D');
-                t.by = parts[1];
-                tasks[taskCount] = t;
+                tasks[taskCount] = new Deadline(parts[0], parts[1]);
                 taskCount++;
                 System.out.println("Got it. I've added this task:");
                 System.out.println("  " + tasks[taskCount - 1]);
@@ -63,10 +61,7 @@ public class Elora {
                 String remainder = input.substring(6);
                 String[] fromParts = remainder.split(" /from ", 2);
                 String[] toParts = fromParts[1].split(" /to ", 2);
-                Task t = new Task(fromParts[0], 'E');
-                t.from = toParts[0];
-                t.to = toParts[1];
-                tasks[taskCount] = t;
+                tasks[taskCount] = new Event(fromParts[0], toParts[0], toParts[1]);
                 taskCount++;
                 System.out.println("Got it. I've added this task:");
                 System.out.println("  " + tasks[taskCount - 1]);
