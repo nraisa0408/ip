@@ -42,10 +42,37 @@ public class Elora {
                 tasks[index].markAsNotDone();
                 System.out.println("OK, I've marked this task as not done yet:");
                 System.out.println("  " + tasks[index]);
-            } else {
-                tasks[taskCount] = new Task(input);
+            } else if (input.startsWith("todo ")) {
+                String description = input.substring(5);
+                tasks[taskCount] = new Task(description, 'T');
                 taskCount++;
-                System.out.println("added: " + input);
+                System.out.println("Got it. I've added this task:");
+                System.out.println("  " + tasks[taskCount - 1]);
+                System.out.println("Now you have " + taskCount + " tasks in the list.");
+            } else if (input.startsWith("deadline ")) {
+                String remainder = input.substring(9);
+                String[] parts = remainder.split(" /by ", 2);
+                Task t = new Task(parts[0], 'D');
+                t.by = parts[1];
+                tasks[taskCount] = t;
+                taskCount++;
+                System.out.println("Got it. I've added this task:");
+                System.out.println("  " + tasks[taskCount - 1]);
+                System.out.println("Now you have " + taskCount + " tasks in the list.");
+            } else if (input.startsWith("event ")) {
+                String remainder = input.substring(6);
+                String[] fromParts = remainder.split(" /from ", 2);
+                String[] toParts = fromParts[1].split(" /to ", 2);
+                Task t = new Task(fromParts[0], 'E');
+                t.from = toParts[0];
+                t.to = toParts[1];
+                tasks[taskCount] = t;
+                taskCount++;
+                System.out.println("Got it. I've added this task:");
+                System.out.println("  " + tasks[taskCount - 1]);
+                System.out.println("Now you have " + taskCount + " tasks in the list.");
+            } else {
+                System.out.println("I don't recognize that command yet.");
             }
 
             System.out.println(line);

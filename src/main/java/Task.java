@@ -1,10 +1,15 @@
 public class Task {
     protected String description;
     protected boolean isDone;
+    protected char type;
+    protected String by;
+    protected String from;
+    protected String to;
 
-    public Task(String description) {
+    public Task(String description, char type) {
         this.description = description;
         this.isDone = false;
+        this.type = type;
     }
 
     public void markAsDone() {
@@ -19,12 +24,14 @@ public class Task {
         return (isDone ? "X" : " ");
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     @Override
     public String toString() {
-        return "[" + getStatusIcon() + "] " + description;
+        String base = "[" + type + "][" + getStatusIcon() + "] " + description;
+        if (type == 'D') {
+            base += " (by: " + by + ")";
+        } else if (type == 'E') {
+            base += " (from: " + from + " to: " + to + ")";
+        }
+        return base;
     }
 }
