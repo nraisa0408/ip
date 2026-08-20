@@ -17,92 +17,112 @@ public class Elora {
         System.out.println(line);
 
         ArrayList<Task> tasks = new ArrayList<>();
-
         Scanner scanner = new Scanner(System.in);
-        while (true) {
+        boolean isExit = false;
+
+        while (!isExit) {
             String input = scanner.nextLine();
             System.out.println(line);
 
             try {
-                if (input.equals("bye")) {
+                String commandWord;
+                String arguments;
+                int spaceIndex = input.indexOf(' ');
+                if (spaceIndex == -1) {
+                    commandWord = input;
+                    arguments = "";
+                } else {
+                    commandWord = input.substring(0, spaceIndex);
+                    arguments = input.substring(spaceIndex + 1).trim();
+                }
+                CommandType commandType = parseCommandType(commandWord);
+
+                switch (commandType) {
+                case BYE: {
                     System.out.println("Bye for now, friend. Until our paths cross again!");
-                    System.out.println(line);
+                    isExit = true;
                     break;
-                } else if (input.equals("list")) {
+                }
+                case LIST: {
                     System.out.println("Here are the tasks in your list:");
                     for (int i = 0; i < tasks.size(); i++) {
                         System.out.println((i + 1) + "." + tasks.get(i));
                     }
-                } else if (input.equals("mark") || input.startsWith("mark ")) {
-                    String arg = input.equals("mark") ? "" : input.substring(5).trim();
-                    if (arg.isEmpty()) {
+                    break;
+                }
+                case MARK: {
+                    if (arguments.isEmpty()) {
                         throw new EloraException("Hold on - which task should I mark done? Give me a number, like mark 2.");
                     }
                     int index;
                     try {
-                        index = Integer.parseInt(arg) - 1;
+                        index = Integer.parseInt(arguments) - 1;
                     } catch (NumberFormatException e) {
-                        throw new EloraException("Hold on - \"" + arg + "\" doesn't look like a task number to me.");
+                        throw new EloraException("Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
                     }
                     if (index < 0 || index >= tasks.size()) {
-                        throw new EloraException("Hold on - I don't see a task numbered " + arg + ". Take another look at your list?");
+                        throw new EloraException("Hold on - I don't see a task numbered " + arguments + ". Take another look at your list?");
                     }
                     tasks.get(index).markAsDone();
                     System.out.println("Nice! I've marked this task as done:");
                     System.out.println("  " + tasks.get(index));
-                } else if (input.equals("unmark") || input.startsWith("unmark ")) {
-                    String arg = input.equals("unmark") ? "" : input.substring(7).trim();
-                    if (arg.isEmpty()) {
+                    break;
+                }
+                case UNMARK: {
+                    if (arguments.isEmpty()) {
                         throw new EloraException("Hold on - which task should I unmark? Give me a number, like unmark 2.");
                     }
                     int index;
                     try {
-                        index = Integer.parseInt(arg) - 1;
+                        index = Integer.parseInt(arguments) - 1;
                     } catch (NumberFormatException e) {
-                        throw new EloraException("Hold on - \"" + arg + "\" doesn't look like a task number to me.");
+                        throw new EloraException("Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
                     }
                     if (index < 0 || index >= tasks.size()) {
-                        throw new EloraException("Hold on - I don't see a task numbered " + arg + ". Take another look at your list?");
+                        throw new EloraException("Hold on - I don't see a task numbered " + arguments + ". Take another look at your list?");
                     }
                     tasks.get(index).markAsNotDone();
                     System.out.println("OK, I've marked this task as not done yet:");
                     System.out.println("  " + tasks.get(index));
-                } else if (input.equals("delete") || input.startsWith("delete ")) {
-                    String arg = input.equals("delete") ? "" : input.substring(7).trim();
-                    if (arg.isEmpty()) {
+                    break;
+                }
+                case DELETE: {
+                    if (arguments.isEmpty()) {
                         throw new EloraException("Hold on - which task should I delete? Give me a number, like delete 2.");
                     }
                     int index;
                     try {
-                        index = Integer.parseInt(arg) - 1;
+                        index = Integer.parseInt(arguments) - 1;
                     } catch (NumberFormatException e) {
-                        throw new EloraException("Hold on - \"" + arg + "\" doesn't look like a task number to me.");
+                        throw new EloraException("Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
                     }
                     if (index < 0 || index >= tasks.size()) {
-                        throw new EloraException("Hold on - I don't see a task numbered " + arg + ". Take another look at your list?");
+                        throw new EloraException("Hold on - I don't see a task numbered " + arguments + ". Take another look at your list?");
                     }
                     Task removed = tasks.remove(index);
                     System.out.println("Noted. I've removed this task:");
                     System.out.println("  " + removed);
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                } else if (input.equals("todo") || input.startsWith("todo ")) {
-                    String description = input.equals("todo") ? "" : input.substring(5).trim();
-                    if (description.isEmpty()) {
+                    break;
+                }
+                case TODO: {
+                    if (arguments.isEmpty()) {
                         throw new EloraException("Hold on - a todo needs a description. What would you like to remember?");
                     }
-                    tasks.add(new Todo(description));
+                    tasks.add(new Todo(arguments));
                     System.out.println("Got it. I've added this task:");
                     System.out.println("  " + tasks.get(tasks.size() - 1));
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                } else if (input.equals("deadline") || input.startsWith("deadline ")) {
-                    String remainder = input.equals("deadline") ? "" : input.substring(9).trim();
-                    if (remainder.isEmpty()) {
+                    break;
+                }
+                case DEADLINE: {
+                    if (arguments.isEmpty()) {
                         throw new EloraException("Hold on - a deadline needs a description too. What's due?");
                     }
-                    if (!remainder.contains(" /by ")) {
+                    if (!arguments.contains(" /by ")) {
                         throw new EloraException("Hold on - I'll need a /by time to know when this is due. Try: deadline return book /by Sunday");
                     }
-                    String[] parts = remainder.split(" /by ", 2);
+                    String[] parts = arguments.split(" /by ", 2);
                     String description = parts[0].trim();
                     String by = parts[1].trim();
                     if (description.isEmpty()) {
@@ -115,15 +135,16 @@ public class Elora {
                     System.out.println("Got it. I've added this task:");
                     System.out.println("  " + tasks.get(tasks.size() - 1));
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                } else if (input.equals("event") || input.startsWith("event ")) {
-                    String remainder = input.equals("event") ? "" : input.substring(6).trim();
-                    if (remainder.isEmpty()) {
+                    break;
+                }
+                case EVENT: {
+                    if (arguments.isEmpty()) {
                         throw new EloraException("Hold on - an event needs a description. What's happening?");
                     }
-                    if (!remainder.contains(" /from ")) {
+                    if (!arguments.contains(" /from ")) {
                         throw new EloraException("Hold on - I'll need a /from time to know when this starts. Try: event meeting /from Mon 2pm /to 4pm");
                     }
-                    String[] fromParts = remainder.split(" /from ", 2);
+                    String[] fromParts = arguments.split(" /from ", 2);
                     String description = fromParts[0].trim();
                     if (description.isEmpty()) {
                         throw new EloraException("Hold on - an event needs a description. What's happening?");
@@ -144,7 +165,9 @@ public class Elora {
                     System.out.println("Got it. I've added this task:");
                     System.out.println("  " + tasks.get(tasks.size() - 1));
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                } else {
+                    break;
+                }
+                default:
                     throw new EloraException("Hold on - I don't recognize that one yet. Could you rephrase it?");
                 }
             } catch (EloraException e) {
@@ -154,5 +177,28 @@ public class Elora {
             System.out.println(line);
         }
         scanner.close();
+    }
+
+    private static CommandType parseCommandType(String commandWord) {
+        switch (commandWord) {
+        case "bye":
+            return CommandType.BYE;
+        case "list":
+            return CommandType.LIST;
+        case "mark":
+            return CommandType.MARK;
+        case "unmark":
+            return CommandType.UNMARK;
+        case "delete":
+            return CommandType.DELETE;
+        case "todo":
+            return CommandType.TODO;
+        case "deadline":
+            return CommandType.DEADLINE;
+        case "event":
+            return CommandType.EVENT;
+        default:
+            return CommandType.UNKNOWN;
+        }
     }
 }
