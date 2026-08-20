@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Elora {
@@ -15,8 +16,7 @@ public class Elora {
         System.out.println("What can I do for you?");
         System.out.println(line);
 
-        Task[] tasks = new Task[100];
-        int taskCount = 0;
+        ArrayList<Task> tasks = new ArrayList<>();
 
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -30,8 +30,8 @@ public class Elora {
                     break;
                 } else if (input.equals("list")) {
                     System.out.println("Here are the tasks in your list:");
-                    for (int i = 0; i < taskCount; i++) {
-                        System.out.println((i + 1) + "." + tasks[i]);
+                    for (int i = 0; i < tasks.size(); i++) {
+                        System.out.println((i + 1) + "." + tasks.get(i));
                     }
                 } else if (input.equals("mark") || input.startsWith("mark ")) {
                     String arg = input.equals("mark") ? "" : input.substring(5).trim();
@@ -44,12 +44,12 @@ public class Elora {
                     } catch (NumberFormatException e) {
                         throw new EloraException("Hold on - \"" + arg + "\" doesn't look like a task number to me.");
                     }
-                    if (index < 0 || index >= taskCount) {
+                    if (index < 0 || index >= tasks.size()) {
                         throw new EloraException("Hold on - I don't see a task numbered " + arg + ". Take another look at your list?");
                     }
-                    tasks[index].markAsDone();
+                    tasks.get(index).markAsDone();
                     System.out.println("Nice! I've marked this task as done:");
-                    System.out.println("  " + tasks[index]);
+                    System.out.println("  " + tasks.get(index));
                 } else if (input.equals("unmark") || input.startsWith("unmark ")) {
                     String arg = input.equals("unmark") ? "" : input.substring(7).trim();
                     if (arg.isEmpty()) {
@@ -61,12 +61,12 @@ public class Elora {
                     } catch (NumberFormatException e) {
                         throw new EloraException("Hold on - \"" + arg + "\" doesn't look like a task number to me.");
                     }
-                    if (index < 0 || index >= taskCount) {
+                    if (index < 0 || index >= tasks.size()) {
                         throw new EloraException("Hold on - I don't see a task numbered " + arg + ". Take another look at your list?");
                     }
-                    tasks[index].markAsNotDone();
+                    tasks.get(index).markAsNotDone();
                     System.out.println("OK, I've marked this task as not done yet:");
-                    System.out.println("  " + tasks[index]);
+                    System.out.println("  " + tasks.get(index));
                 } else if (input.equals("delete") || input.startsWith("delete ")) {
                     String arg = input.equals("delete") ? "" : input.substring(7).trim();
                     if (arg.isEmpty()) {
@@ -78,28 +78,22 @@ public class Elora {
                     } catch (NumberFormatException e) {
                         throw new EloraException("Hold on - \"" + arg + "\" doesn't look like a task number to me.");
                     }
-                    if (index < 0 || index >= taskCount) {
+                    if (index < 0 || index >= tasks.size()) {
                         throw new EloraException("Hold on - I don't see a task numbered " + arg + ". Take another look at your list?");
                     }
-                    Task removed = tasks[index];
-                    for (int i = index; i < taskCount - 1; i++) {
-                        tasks[i] = tasks[i + 1];
-                    }
-                    tasks[taskCount - 1] = null;
-                    taskCount--;
+                    Task removed = tasks.remove(index);
                     System.out.println("Noted. I've removed this task:");
                     System.out.println("  " + removed);
-                    System.out.println("Now you have " + taskCount + " tasks in the list.");
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                 } else if (input.equals("todo") || input.startsWith("todo ")) {
                     String description = input.equals("todo") ? "" : input.substring(5).trim();
                     if (description.isEmpty()) {
                         throw new EloraException("Hold on - a todo needs a description. What would you like to remember?");
                     }
-                    tasks[taskCount] = new Todo(description);
-                    taskCount++;
+                    tasks.add(new Todo(description));
                     System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + tasks[taskCount - 1]);
-                    System.out.println("Now you have " + taskCount + " tasks in the list.");
+                    System.out.println("  " + tasks.get(tasks.size() - 1));
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                 } else if (input.equals("deadline") || input.startsWith("deadline ")) {
                     String remainder = input.equals("deadline") ? "" : input.substring(9).trim();
                     if (remainder.isEmpty()) {
@@ -117,11 +111,10 @@ public class Elora {
                     if (by.isEmpty()) {
                         throw new EloraException("Hold on - you've given me a /by, but no actual time. When's this due?");
                     }
-                    tasks[taskCount] = new Deadline(description, by);
-                    taskCount++;
+                    tasks.add(new Deadline(description, by));
                     System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + tasks[taskCount - 1]);
-                    System.out.println("Now you have " + taskCount + " tasks in the list.");
+                    System.out.println("  " + tasks.get(tasks.size() - 1));
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                 } else if (input.equals("event") || input.startsWith("event ")) {
                     String remainder = input.equals("event") ? "" : input.substring(6).trim();
                     if (remainder.isEmpty()) {
@@ -147,11 +140,10 @@ public class Elora {
                     if (to.isEmpty()) {
                         throw new EloraException("Hold on - and when does it end? I'm missing the /to time.");
                     }
-                    tasks[taskCount] = new Event(description, from, to);
-                    taskCount++;
+                    tasks.add(new Event(description, from, to));
                     System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + tasks[taskCount - 1]);
-                    System.out.println("Now you have " + taskCount + " tasks in the list.");
+                    System.out.println("  " + tasks.get(tasks.size() - 1));
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                 } else {
                     throw new EloraException("Hold on - I don't recognize that one yet. Could you rephrase it?");
                 }
