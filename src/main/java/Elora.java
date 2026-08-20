@@ -67,6 +67,29 @@ public class Elora {
                     tasks[index].markAsNotDone();
                     System.out.println("OK, I've marked this task as not done yet:");
                     System.out.println("  " + tasks[index]);
+                } else if (input.equals("delete") || input.startsWith("delete ")) {
+                    String arg = input.equals("delete") ? "" : input.substring(7).trim();
+                    if (arg.isEmpty()) {
+                        throw new EloraException("Hold on - which task should I delete? Give me a number, like delete 2.");
+                    }
+                    int index;
+                    try {
+                        index = Integer.parseInt(arg) - 1;
+                    } catch (NumberFormatException e) {
+                        throw new EloraException("Hold on - \"" + arg + "\" doesn't look like a task number to me.");
+                    }
+                    if (index < 0 || index >= taskCount) {
+                        throw new EloraException("Hold on - I don't see a task numbered " + arg + ". Take another look at your list?");
+                    }
+                    Task removed = tasks[index];
+                    for (int i = index; i < taskCount - 1; i++) {
+                        tasks[i] = tasks[i + 1];
+                    }
+                    tasks[taskCount - 1] = null;
+                    taskCount--;
+                    System.out.println("Noted. I've removed this task:");
+                    System.out.println("  " + removed);
+                    System.out.println("Now you have " + taskCount + " tasks in the list.");
                 } else if (input.equals("todo") || input.startsWith("todo ")) {
                     String description = input.equals("todo") ? "" : input.substring(5).trim();
                     if (description.isEmpty()) {
