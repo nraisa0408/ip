@@ -1,7 +1,13 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Elora {
+    private static final String DATA_FILE_PATH = "data" + File.separator + "elora.txt";
+
     public static void main(String[] args) {
         String logo = " _____ _\n"
                 + "| ____| | ___  _ __ __ _\n"
@@ -16,7 +22,7 @@ public class Elora {
         System.out.println("What can I do for you?");
         System.out.println(line);
 
-        ArrayList<Task> tasks = new ArrayList<>();
+        ArrayList<Task> tasks = loadTasks(DATA_FILE_PATH);
         Scanner scanner = new Scanner(System.in);
         boolean isExit = false;
 
@@ -64,6 +70,7 @@ public class Elora {
                         throw new EloraException("Hold on - I don't see a task numbered " + arguments + ". Take another look at your list?");
                     }
                     tasks.get(index).markAsDone();
+                    saveTasks(tasks, DATA_FILE_PATH);
                     System.out.println("Nice! I've marked this task as done:");
                     System.out.println("  " + tasks.get(index));
                     break;
@@ -82,6 +89,7 @@ public class Elora {
                         throw new EloraException("Hold on - I don't see a task numbered " + arguments + ". Take another look at your list?");
                     }
                     tasks.get(index).markAsNotDone();
+                    saveTasks(tasks, DATA_FILE_PATH);
                     System.out.println("OK, I've marked this task as not done yet:");
                     System.out.println("  " + tasks.get(index));
                     break;
@@ -100,6 +108,7 @@ public class Elora {
                         throw new EloraException("Hold on - I don't see a task numbered " + arguments + ". Take another look at your list?");
                     }
                     Task removed = tasks.remove(index);
+                    saveTasks(tasks, DATA_FILE_PATH);
                     System.out.println("Noted. I've removed this task:");
                     System.out.println("  " + removed);
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
@@ -110,6 +119,7 @@ public class Elora {
                         throw new EloraException("Hold on - a todo needs a description. What would you like to remember?");
                     }
                     tasks.add(new Todo(arguments));
+                    saveTasks(tasks, DATA_FILE_PATH);
                     System.out.println("Got it. I've added this task:");
                     System.out.println("  " + tasks.get(tasks.size() - 1));
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
@@ -132,6 +142,7 @@ public class Elora {
                         throw new EloraException("Hold on - you've given me a /by, but no actual time. When's this due?");
                     }
                     tasks.add(new Deadline(description, by));
+                    saveTasks(tasks, DATA_FILE_PATH);
                     System.out.println("Got it. I've added this task:");
                     System.out.println("  " + tasks.get(tasks.size() - 1));
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
@@ -162,6 +173,7 @@ public class Elora {
                         throw new EloraException("Hold on - and when does it end? I'm missing the /to time.");
                     }
                     tasks.add(new Event(description, from, to));
+                    saveTasks(tasks, DATA_FILE_PATH);
                     System.out.println("Got it. I've added this task:");
                     System.out.println("  " + tasks.get(tasks.size() - 1));
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
@@ -199,6 +211,84 @@ public class Elora {
             return CommandType.EVENT;
         default:
             return CommandType.UNKNOWN;
+        }
+    }
+
+    private static ArrayList<Task> loadTasks(String filePath) {
+        ArrayList<Task> tasks = new ArrayList<>();
+        File file = new File(filePath);
+        if (!file.exists()) {
+            return tasks;
+        }
+        try {
+            Scanner fileScanner = new Scanner(file);
+            while (fileScanner.hasNextLine()) {
+                String fileLine = fileScanner.nextLine();
+                if (fileLine.trim().isEmpty()) {
+                    continue;
+                }
+                try {
+                    tasks.add(parseTaskFromFileLine(fileLine));
+                } catch (EloraException e) {
+                    System.out.println("Hold on - I found a save file line I couldn't understand, so I'm skipping it: " + fileLine);
+                }
+            }
+            fileScanner.close();
+        } catch (FileNotFoundException e) {
+            // File existed a moment ago (just checked) but is gone now; treat as no data yet.
+        }
+        return tasks;
+    }
+
+    private static Task parseTaskFromFileLine(String fileLine) throws EloraException {
+        String[] parts = fileLine.split(" \\| ");
+        if (parts.length < 3) {
+            throw new EloraException("Line has too few fields: " + fileLine);
+        }
+        String type = parts[0];
+        boolean isDone = parts[1].equals("1");
+        String description = parts[2];
+
+        Task task;
+        switch (type) {
+        case "T":
+            task = new Todo(description);
+            break;
+        case "D":
+            if (parts.length < 4) {
+                throw new EloraException("Deadline line is missing its date: " + fileLine);
+            }
+            task = new Deadline(description, parts[3]);
+            break;
+        case "E":
+            if (parts.length < 5) {
+                throw new EloraException("Event line is missing its from/to times: " + fileLine);
+            }
+            task = new Event(description, parts[3], parts[4]);
+            break;
+        default:
+            throw new EloraException("Unrecognized task type \"" + type + "\": " + fileLine);
+        }
+        if (isDone) {
+            task.markAsDone();
+        }
+        return task;
+    }
+
+    private static void saveTasks(ArrayList<Task> tasks, String filePath) {
+        try {
+            File file = new File(filePath);
+            File parentDir = file.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs();
+            }
+            FileWriter writer = new FileWriter(file);
+            for (Task task : tasks) {
+                writer.write(task.toSaveFormat() + System.lineSeparator());
+            }
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Hold on - I couldn't save your tasks to disk: " + e.getMessage());
         }
     }
 }
