@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class Elora {
     private static final String DATA_FILE_PATH = "data" + File.separator + "elora.txt";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         String logo = " _____ _\n"
                 + "| ____| | ___  _ __ __ _\n"
                 + "|  _| | |/ _ \\| '__/ _` |\n"
@@ -214,23 +214,37 @@ public class Elora {
         }
     }
 
-    private static ArrayList<Task> loadTasks(String filePath) throws FileNotFoundException {
+    private static ArrayList<Task> loadTasks(String filePath) {
         ArrayList<Task> tasks = new ArrayList<>();
         File file = new File(filePath);
         if (!file.exists()) {
             return tasks;
         }
-        Scanner fileScanner = new Scanner(file);
-        while (fileScanner.hasNextLine()) {
-            String fileLine = fileScanner.nextLine();
-            tasks.add(parseTaskFromFileLine(fileLine));
+        try {
+            Scanner fileScanner = new Scanner(file);
+            while (fileScanner.hasNextLine()) {
+                String fileLine = fileScanner.nextLine();
+                if (fileLine.trim().isEmpty()) {
+                    continue;
+                }
+                try {
+                    tasks.add(parseTaskFromFileLine(fileLine));
+                } catch (EloraException e) {
+                    System.out.println("Hold on - I found a save file line I couldn't understand, so I'm skipping it: " + fileLine);
+                }
+            }
+            fileScanner.close();
+        } catch (FileNotFoundException e) {
+            // File existed a moment ago (just checked) but is gone now; treat as no data yet.
         }
-        fileScanner.close();
         return tasks;
     }
 
-    private static Task parseTaskFromFileLine(String fileLine) {
+    private static Task parseTaskFromFileLine(String fileLine) throws EloraException {
         String[] parts = fileLine.split(" \\| ");
+        if (parts.length < 3) {
+            throw new EloraException("Line has too few fields: " + fileLine);
+        }
         String type = parts[0];
         boolean isDone = parts[1].equals("1");
         String description = parts[2];
@@ -241,13 +255,19 @@ public class Elora {
             task = new Todo(description);
             break;
         case "D":
+            if (parts.length < 4) {
+                throw new EloraException("Deadline line is missing its date: " + fileLine);
+            }
             task = new Deadline(description, parts[3]);
             break;
         case "E":
+            if (parts.length < 5) {
+                throw new EloraException("Event line is missing its from/to times: " + fileLine);
+            }
             task = new Event(description, parts[3], parts[4]);
             break;
         default:
-            throw new IllegalArgumentException("Unknown task type: " + type);
+            throw new EloraException("Unrecognized task type \"" + type + "\": " + fileLine);
         }
         if (isDone) {
             task.markAsDone();
@@ -255,16 +275,20 @@ public class Elora {
         return task;
     }
 
-    private static void saveTasks(ArrayList<Task> tasks, String filePath) throws IOException {
-        File file = new File(filePath);
-        File parentDir = file.getParentFile();
-        if (parentDir != null && !parentDir.exists()) {
-            parentDir.mkdirs();
+    private static void saveTasks(ArrayList<Task> tasks, String filePath) {
+        try {
+            File file = new File(filePath);
+            File parentDir = file.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs();
+            }
+            FileWriter writer = new FileWriter(file);
+            for (Task task : tasks) {
+                writer.write(task.toSaveFormat() + System.lineSeparator());
+            }
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Hold on - I couldn't save your tasks to disk: " + e.getMessage());
         }
-        FileWriter writer = new FileWriter(file);
-        for (Task task : tasks) {
-            writer.write(task.toSaveFormat() + System.lineSeparator());
-        }
-        writer.close();
     }
 }
