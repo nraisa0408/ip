@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class Elora {
         System.out.println("What can I do for you?");
         System.out.println(line);
 
-        ArrayList<Task> tasks = new ArrayList<>();
+        ArrayList<Task> tasks = loadTasks(DATA_FILE_PATH);
         Scanner scanner = new Scanner(System.in);
         boolean isExit = false;
 
@@ -211,6 +212,47 @@ public class Elora {
         default:
             return CommandType.UNKNOWN;
         }
+    }
+
+    private static ArrayList<Task> loadTasks(String filePath) throws FileNotFoundException {
+        ArrayList<Task> tasks = new ArrayList<>();
+        File file = new File(filePath);
+        if (!file.exists()) {
+            return tasks;
+        }
+        Scanner fileScanner = new Scanner(file);
+        while (fileScanner.hasNextLine()) {
+            String fileLine = fileScanner.nextLine();
+            tasks.add(parseTaskFromFileLine(fileLine));
+        }
+        fileScanner.close();
+        return tasks;
+    }
+
+    private static Task parseTaskFromFileLine(String fileLine) {
+        String[] parts = fileLine.split(" \\| ");
+        String type = parts[0];
+        boolean isDone = parts[1].equals("1");
+        String description = parts[2];
+
+        Task task;
+        switch (type) {
+        case "T":
+            task = new Todo(description);
+            break;
+        case "D":
+            task = new Deadline(description, parts[3]);
+            break;
+        case "E":
+            task = new Event(description, parts[3], parts[4]);
+            break;
+        default:
+            throw new IllegalArgumentException("Unknown task type: " + type);
+        }
+        if (isDone) {
+            task.markAsDone();
+        }
+        return task;
     }
 
     private static void saveTasks(ArrayList<Task> tasks, String filePath) throws IOException {
