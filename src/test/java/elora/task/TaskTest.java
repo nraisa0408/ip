@@ -1,0 +1,57 @@
+package elora.task;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import java.time.LocalDate;
+
+import org.junit.jupiter.api.Test;
+
+class TaskTest {
+
+    @Test
+    void constructor_newTask_isNotDone() {
+        Task task = new Task("read book");
+        assertEquals(" ", task.getStatusIcon());
+    }
+
+    @Test
+    void constructor_newTask_storesDescription() {
+        Task task = new Task("read book");
+        assertEquals("read book", task.getDescription());
+    }
+
+    @Test
+    void markAsDone_notDoneTask_statusIconBecomesX() {
+        Task task = new Task("read book");
+        task.markAsDone();
+        assertEquals("X", task.getStatusIcon());
+    }
+
+    @Test
+    void markAsNotDone_doneTask_statusIconBecomesBlank() {
+        Task task = new Task("read book");
+        task.markAsDone();
+        task.markAsNotDone();
+        assertEquals(" ", task.getStatusIcon());
+    }
+
+    @Test
+    void toString_notDoneTask_showsBlankBracket() {
+        Task task = new Task("read book");
+        assertEquals("[ ] read book", task.toString());
+    }
+
+    @Test
+    void toString_doneTask_showsXBracket() {
+        Task task = new Task("read book");
+        task.markAsDone();
+        assertEquals("[X] read book", task.toString());
+    }
+
+    @Test
+    void isOccurringOn_anyDate_returnsFalse() {
+        Task task = new Task("read book");
+        assertFalse(task.isOccurringOn(LocalDate.parse("2019-10-15")));
+    }
+}
