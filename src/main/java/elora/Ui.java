@@ -1,7 +1,12 @@
+package elora;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
+
+import elora.task.Task;
+import elora.task.TaskList;
 
 /**
  * Deals with all interaction with the user: reading input and printing output.

@@ -1,6 +1,14 @@
+package elora;
+
 import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+
+import elora.task.Deadline;
+import elora.task.Event;
+import elora.task.Task;
+import elora.task.TaskList;
+import elora.task.Todo;
 
 public class Elora {
     private static final String DATA_FILE_PATH = "data" + File.separator + "elora.txt";

@@ -1,3 +1,5 @@
+package elora;
+
 /**
  * Deals with making sense of the user's raw input: splitting it into a
  * command word and its arguments, and mapping the command word to a

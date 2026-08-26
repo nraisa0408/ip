@@ -1,3 +1,5 @@
+package elora;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -6,6 +8,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
+
+import elora.task.Deadline;
+import elora.task.Event;
+import elora.task.Task;
+import elora.task.Todo;
 
 /**
  * Deals with loading tasks from the save file and writing tasks back to it.
