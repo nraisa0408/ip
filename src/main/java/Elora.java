@@ -3,12 +3,14 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Elora {
     private static final String DATA_FILE_PATH = "data" + File.separator + "elora.txt";
+    private static final DateTimeFormatter DISPLAY_DATE_FORMAT = DateTimeFormatter.ofPattern("MMM dd yyyy");
 
     public static void main(String[] args) {
         String logo = " _____ _\n"
@@ -187,6 +189,29 @@ public class Elora {
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                     break;
                 }
+                case ON: {
+                    if (arguments.isEmpty()) {
+                        throw new EloraException("Hold on - which date? Try: on 2019-10-15");
+                    }
+                    LocalDate targetDate;
+                    try {
+                        targetDate = LocalDate.parse(arguments);
+                    } catch (DateTimeParseException e) {
+                        throw new EloraException("Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
+                    }
+                    System.out.println("Here's what's happening on " + targetDate.format(DISPLAY_DATE_FORMAT) + ":");
+                    boolean foundAny = false;
+                    for (Task task : tasks) {
+                        if (task.isOccurringOn(targetDate)) {
+                            System.out.println("  " + task);
+                            foundAny = true;
+                        }
+                    }
+                    if (!foundAny) {
+                        System.out.println("  Nothing on your list for that day.");
+                    }
+                    break;
+                }
                 default:
                     throw new EloraException("Hold on - I don't recognize that one yet. Could you rephrase it?");
                 }
@@ -217,6 +242,8 @@ public class Elora {
             return CommandType.DEADLINE;
         case "event":
             return CommandType.EVENT;
+        case "on":
+            return CommandType.ON;
         default:
             return CommandType.UNKNOWN;
         }
