@@ -2,6 +2,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -134,12 +136,18 @@ public class Elora {
                     }
                     String[] parts = arguments.split(" /by ", 2);
                     String description = parts[0].trim();
-                    String by = parts[1].trim();
+                    String byString = parts[1].trim();
                     if (description.isEmpty()) {
                         throw new EloraException("Hold on - a deadline needs a description too. What's due?");
                     }
-                    if (by.isEmpty()) {
-                        throw new EloraException("Hold on - you've given me a /by, but no actual time. When's this due?");
+                    if (byString.isEmpty()) {
+                        throw new EloraException("Hold on - you've given me a /by, but no actual date. When's this due?");
+                    }
+                    LocalDate by;
+                    try {
+                        by = LocalDate.parse(byString);
+                    } catch (DateTimeParseException e) {
+                        throw new EloraException("Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
                     }
                     tasks.add(new Deadline(description, by));
                     saveTasks(tasks, DATA_FILE_PATH);
@@ -258,7 +266,11 @@ public class Elora {
             if (parts.length < 4) {
                 throw new EloraException("Deadline line is missing its date: " + fileLine);
             }
-            task = new Deadline(description, parts[3]);
+            try {
+                task = new Deadline(description, LocalDate.parse(parts[3]));
+            } catch (DateTimeParseException e) {
+                throw new EloraException("Deadline line has an unreadable date: " + fileLine);
+            }
             break;
         case "E":
             if (parts.length < 5) {
