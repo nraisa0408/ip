@@ -1,3 +1,5 @@
+import java.time.LocalDate;
+
 public class Task {
     protected String description;
     protected boolean isDone;
@@ -21,6 +23,10 @@ public class Task {
 
     public String getDescription() {
         return description;
+    }
+
+    public boolean isOccurringOn(LocalDate date) {
+        return false;
     }
 
     public String toSaveFormat() {
