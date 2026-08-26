@@ -1,3 +1,5 @@
+package elora;
+
 public enum CommandType {
     BYE,
     LIST,
