@@ -54,7 +54,9 @@ public class Storage {
                 try {
                     tasks.add(parseTaskFromFileLine(fileLine));
                 } catch (EloraException e) {
-                    System.out.println("Hold on - I found a save file line I couldn't understand, so I'm skipping it: " + fileLine);
+                    System.out.println(
+                            "Hold on - I found a save file line I couldn't understand, so I'm skipping it: "
+                            + fileLine);
                 }
             }
             fileScanner.close();

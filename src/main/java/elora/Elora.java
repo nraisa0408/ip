@@ -63,16 +63,20 @@ public class Elora {
                 }
                 case MARK: {
                     if (arguments.isEmpty()) {
-                        throw new EloraException("Hold on - which task should I mark done? Give me a number, like mark 2.");
+                        throw new EloraException(
+                                "Hold on - which task should I mark done? Give me a number, like mark 2.");
                     }
                     int index;
                     try {
                         index = Integer.parseInt(arguments) - 1;
                     } catch (NumberFormatException e) {
-                        throw new EloraException("Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
+                        throw new EloraException(
+                                "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
                     }
                     if (index < 0 || index >= tasks.size()) {
-                        throw new EloraException("Hold on - I don't see a task numbered " + arguments + ". Take another look at your list?");
+                        throw new EloraException(
+                                "Hold on - I don't see a task numbered " + arguments
+                                + ". Take another look at your list?");
                     }
                     Task task = tasks.get(index);
                     task.markAsDone();
@@ -82,16 +86,20 @@ public class Elora {
                 }
                 case UNMARK: {
                     if (arguments.isEmpty()) {
-                        throw new EloraException("Hold on - which task should I unmark? Give me a number, like unmark 2.");
+                        throw new EloraException(
+                                "Hold on - which task should I unmark? Give me a number, like unmark 2.");
                     }
                     int index;
                     try {
                         index = Integer.parseInt(arguments) - 1;
                     } catch (NumberFormatException e) {
-                        throw new EloraException("Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
+                        throw new EloraException(
+                                "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
                     }
                     if (index < 0 || index >= tasks.size()) {
-                        throw new EloraException("Hold on - I don't see a task numbered " + arguments + ". Take another look at your list?");
+                        throw new EloraException(
+                                "Hold on - I don't see a task numbered " + arguments
+                                + ". Take another look at your list?");
                     }
                     Task task = tasks.get(index);
                     task.markAsNotDone();
@@ -101,16 +109,20 @@ public class Elora {
                 }
                 case DELETE: {
                     if (arguments.isEmpty()) {
-                        throw new EloraException("Hold on - which task should I delete? Give me a number, like delete 2.");
+                        throw new EloraException(
+                                "Hold on - which task should I delete? Give me a number, like delete 2.");
                     }
                     int index;
                     try {
                         index = Integer.parseInt(arguments) - 1;
                     } catch (NumberFormatException e) {
-                        throw new EloraException("Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
+                        throw new EloraException(
+                                "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
                     }
                     if (index < 0 || index >= tasks.size()) {
-                        throw new EloraException("Hold on - I don't see a task numbered " + arguments + ". Take another look at your list?");
+                        throw new EloraException(
+                                "Hold on - I don't see a task numbered " + arguments
+                                + ". Take another look at your list?");
                     }
                     Task removed = tasks.remove(index);
                     storage.save(tasks.getAll());
@@ -119,7 +131,8 @@ public class Elora {
                 }
                 case TODO: {
                     if (arguments.isEmpty()) {
-                        throw new EloraException("Hold on - a todo needs a description. What would you like to remember?");
+                        throw new EloraException(
+                                "Hold on - a todo needs a description. What would you like to remember?");
                     }
                     Task task = new Todo(arguments);
                     tasks.add(task);
@@ -129,25 +142,30 @@ public class Elora {
                 }
                 case DEADLINE: {
                     if (arguments.isEmpty()) {
-                        throw new EloraException("Hold on - a deadline needs a description too. What's due?");
+                        throw new EloraException(
+                                "Hold on - a deadline needs a description too. What's due?");
                     }
                     if (!arguments.contains(" /by ")) {
-                        throw new EloraException("Hold on - I'll need a /by time to know when this is due. Try: deadline return book /by Sunday");
+                        throw new EloraException("Hold on - I'll need a /by time to know when this"
+                                + " is due. Try: deadline return book /by Sunday");
                     }
                     String[] parts = arguments.split(" /by ", 2);
                     String description = parts[0].trim();
                     String byString = parts[1].trim();
                     if (description.isEmpty()) {
-                        throw new EloraException("Hold on - a deadline needs a description too. What's due?");
+                        throw new EloraException(
+                                "Hold on - a deadline needs a description too. What's due?");
                     }
                     if (byString.isEmpty()) {
-                        throw new EloraException("Hold on - you've given me a /by, but no actual date. When's this due?");
+                        throw new EloraException(
+                                "Hold on - you've given me a /by, but no actual date. When's this due?");
                     }
                     LocalDate by;
                     try {
                         by = LocalDate.parse(byString);
                     } catch (DateTimeParseException e) {
-                        throw new EloraException("Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
+                        throw new EloraException(
+                                "Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
                     }
                     Task task = new Deadline(description, by);
                     tasks.add(task);
@@ -160,7 +178,8 @@ public class Elora {
                         throw new EloraException("Hold on - an event needs a description. What's happening?");
                     }
                     if (!arguments.contains(" /from ")) {
-                        throw new EloraException("Hold on - I'll need a /from time to know when this starts. Try: event meeting /from Mon 2pm /to 4pm");
+                        throw new EloraException("Hold on - I'll need a /from time to know when this"
+                                + " starts. Try: event meeting /from Mon 2pm /to 4pm");
                     }
                     String[] fromParts = arguments.split(" /from ", 2);
                     String description = fromParts[0].trim();
@@ -174,7 +193,8 @@ public class Elora {
                     String from = toParts[0].trim();
                     String to = toParts[1].trim();
                     if (from.isEmpty()) {
-                        throw new EloraException("Hold on - when does this begin? I'm missing the /from time.");
+                        throw new EloraException(
+                                "Hold on - when does this begin? I'm missing the /from time.");
                     }
                     if (to.isEmpty()) {
                         throw new EloraException("Hold on - and when does it end? I'm missing the /to time.");
@@ -193,13 +213,15 @@ public class Elora {
                     try {
                         targetDate = LocalDate.parse(arguments);
                     } catch (DateTimeParseException e) {
-                        throw new EloraException("Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
+                        throw new EloraException(
+                                "Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
                     }
                     ui.showTasksOnDate(targetDate, tasks.getTasksOnDate(targetDate));
                     break;
                 }
                 default:
-                    throw new EloraException("Hold on - I don't recognize that one yet. Could you rephrase it?");
+                    throw new EloraException(
+                            "Hold on - I don't recognize that one yet. Could you rephrase it?");
                 }
             } catch (EloraException e) {
                 ui.showError(e.getMessage());

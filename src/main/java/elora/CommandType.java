@@ -23,6 +23,8 @@ public enum CommandType {
     EVENT,
     /** Lists tasks occurring on a specific date. */
     ON,
+    /** Finds tasks whose description contains a keyword. */
+    FIND,
     /** Represents any command word that isn't recognized. */
     UNKNOWN
 }
