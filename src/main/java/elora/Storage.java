@@ -15,15 +15,29 @@ import elora.task.Task;
 import elora.task.Todo;
 
 /**
- * Deals with loading tasks from the save file and writing tasks back to it.
+ * Deals with loading tasks from the save file and writing tasks back to
+ * it. This is the only class that touches the filesystem.
  */
 public class Storage {
     private String filePath;
 
+    /**
+     * Creates a Storage that reads from and writes to the given file path.
+     *
+     * @param filePath Relative path to the save file, e.g. "data/elora.txt".
+     */
     public Storage(String filePath) {
         this.filePath = filePath;
     }
 
+    /**
+     * Loads tasks from the save file. Returns an empty list if the file
+     * doesn't exist yet, e.g. on a fresh install. Lines that can't be
+     * understood are skipped with a warning rather than aborting the
+     * whole load.
+     *
+     * @return The tasks read from the save file, possibly empty.
+     */
     public ArrayList<Task> load() {
         ArrayList<Task> tasks = new ArrayList<>();
         File file = new File(filePath);
@@ -50,6 +64,12 @@ public class Storage {
         return tasks;
     }
 
+    /**
+     * Writes the given tasks to the save file, overwriting any previous
+     * content. Creates the parent folder first if it doesn't exist yet.
+     *
+     * @param tasks The current tasks to persist.
+     */
     public void save(ArrayList<Task> tasks) {
         try {
             File file = new File(filePath);
@@ -67,6 +87,14 @@ public class Storage {
         }
     }
 
+    /**
+     * Parses a single save-file line into the matching Task subclass.
+     *
+     * @param fileLine One line read from the save file.
+     * @return The Task represented by that line.
+     * @throws EloraException If the line is malformed or has an
+     *     unrecognized type.
+     */
     private Task parseTaskFromFileLine(String fileLine) throws EloraException {
         String[] parts = fileLine.split(" \\| ");
         if (parts.length < 3) {
