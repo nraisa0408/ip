@@ -10,6 +10,11 @@ import elora.task.Task;
 import elora.task.TaskList;
 import elora.task.Todo;
 
+/**
+ * Entry point and main command loop for the Elora chatbot: a personal
+ * assistant that tracks todos, deadlines, and events entered via a
+ * simple text command language.
+ */
 public class Elora {
     private static final String DATA_FILE_PATH = "data" + File.separator + "elora.txt";
 
@@ -17,12 +22,23 @@ public class Elora {
     private TaskList tasks;
     private Ui ui;
 
+    /**
+     * Creates an Elora instance, loading any previously saved tasks from
+     * the given file path.
+     *
+     * @param filePath Relative path to the save file.
+     */
     public Elora(String filePath) {
         ui = new Ui();
         storage = new Storage(filePath);
         tasks = new TaskList(storage.load());
     }
 
+    /**
+     * Runs the main command loop: greets the user, then repeatedly reads
+     * a command, executes it, and prints the result, until the user
+     * types "bye".
+     */
     public void run() {
         ui.showWelcome();
         boolean isExit = false;
@@ -194,6 +210,11 @@ public class Elora {
         ui.closeScanner();
     }
 
+    /**
+     * Launches the application.
+     *
+     * @param args Not used.
+     */
     public static void main(String[] args) {
         new Elora(DATA_FILE_PATH).run();
     }
