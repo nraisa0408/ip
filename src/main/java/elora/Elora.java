@@ -183,6 +183,9 @@ public class Elora {
                     break;
                 }
                 case FIND: {
+                    if (arguments.isEmpty()) {
+                        throw new EloraException("Hold on - what should I search for? Try: find book");
+                    }
                     ui.showMatchingTasks(tasks.findTasks(arguments));
                     break;
                 }
