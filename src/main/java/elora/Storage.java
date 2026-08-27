@@ -14,9 +14,6 @@ import elora.task.Event;
 import elora.task.Task;
 import elora.task.Todo;
 
-/**
- * Deals with loading tasks from the save file and writing tasks back to it.
- */
 public class Storage {
     private String filePath;
 
@@ -40,7 +37,9 @@ public class Storage {
                 try {
                     tasks.add(parseTaskFromFileLine(fileLine));
                 } catch (EloraException e) {
-                    System.out.println("Hold on - I found a save file line I couldn't understand, so I'm skipping it: " + fileLine);
+                    System.out.println(
+                            "Hold on - I found a save file line I couldn't understand, so I'm skipping it: "
+                            + fileLine);
                 }
             }
             fileScanner.close();
