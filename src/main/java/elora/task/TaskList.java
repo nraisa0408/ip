@@ -38,6 +38,17 @@ public class TaskList {
         return tasks;
     }
 
+    public ArrayList<Task> findTasks(String keyword) {
+        ArrayList<Task> matches = new ArrayList<>();
+        String lowerKeyword = keyword.toLowerCase();
+        for (Task task : tasks) {
+            if (task.getDescription().toLowerCase().contains(lowerKeyword)) {
+                matches.add(task);
+            }
+        }
+        return matches;
+    }
+
     public ArrayList<Task> getTasksOnDate(LocalDate date) {
         ArrayList<Task> matches = new ArrayList<>();
         for (Task task : tasks) {

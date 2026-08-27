@@ -36,6 +36,8 @@ public class Parser {
             return CommandType.EVENT;
         case "on":
             return CommandType.ON;
+        case "find":
+            return CommandType.FIND;
         default:
             return CommandType.UNKNOWN;
         }

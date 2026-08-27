@@ -79,6 +79,13 @@ public class Ui {
         }
     }
 
+    public void showMatchingTasks(List<Task> matches) {
+        System.out.println("Here are the matching tasks in your list:");
+        for (int i = 0; i < matches.size(); i++) {
+            System.out.println((i + 1) + "." + matches.get(i));
+        }
+    }
+
     public void showTasksOnDate(LocalDate date, List<Task> matches) {
         System.out.println("Here's what's happening on " + date.format(DISPLAY_DATE_FORMAT) + ":");
         if (matches.isEmpty()) {
