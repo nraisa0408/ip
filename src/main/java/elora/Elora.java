@@ -219,6 +219,13 @@ public class Elora {
                     ui.showTasksOnDate(targetDate, tasks.getTasksOnDate(targetDate));
                     break;
                 }
+                case FIND: {
+                    if (arguments.isEmpty()) {
+                        throw new EloraException("Hold on - what should I search for? Try: find book");
+                    }
+                    ui.showMatchingTasks(tasks.findTasks(arguments));
+                    break;
+                }
                 default:
                     throw new EloraException(
                             "Hold on - I don't recognize that one yet. Could you rephrase it?");

@@ -70,6 +70,24 @@ public class TaskList {
     }
 
     /**
+     * Returns the tasks whose description contains the given keyword
+     * (case-insensitive).
+     *
+     * @param keyword The search term to match against descriptions.
+     * @return A new list containing only the matching tasks, possibly empty.
+     */
+    public ArrayList<Task> findTasks(String keyword) {
+        ArrayList<Task> matches = new ArrayList<>();
+        String lowerKeyword = keyword.toLowerCase();
+        for (Task task : tasks) {
+            if (task.getDescription().toLowerCase().contains(lowerKeyword)) {
+                matches.add(task);
+            }
+        }
+        return matches;
+    }
+
+    /**
      * Returns the tasks that occur on the given date.
      *
      * @param date The date to filter by.

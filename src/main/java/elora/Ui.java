@@ -131,6 +131,23 @@ public class Ui {
     }
 
     /**
+     * Prints the tasks matching a keyword search, or a message saying
+     * none matched.
+     *
+     * @param matches The tasks whose description matched the search.
+     */
+    public void showMatchingTasks(List<Task> matches) {
+        System.out.println("Here are the matching tasks in your list:");
+        if (matches.isEmpty()) {
+            System.out.println("  No tasks match that yet.");
+        } else {
+            for (int i = 0; i < matches.size(); i++) {
+                System.out.println((i + 1) + "." + matches.get(i));
+            }
+        }
+    }
+
+    /**
      * Prints the tasks occurring on a given date, or a message saying
      * there are none.
      *
