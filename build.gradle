@@ -43,7 +43,8 @@ test {
 }
 
 application {
-    mainClass = 'elora.Elora'
+    // The GUI is the default entry point; run elora.Elora directly for the console version.
+    mainClass = 'elora.Launcher'
 }
 
 jar {

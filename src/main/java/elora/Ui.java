@@ -32,14 +32,14 @@ public class Ui {
     }
 
     /**
-     * Prints the startup banner and greeting.
+     * Returns the startup banner and greeting.
+     *
+     * @return The welcome message.
      */
-    public void showWelcome() {
-        System.out.println(LINE);
-        System.out.println(LOGO);
-        System.out.println("Hello! I'm Elora - part friend, part philosopher, part guide.");
-        System.out.println("What can I do for you?");
-        System.out.println(LINE);
+    public String welcomeMessage() {
+        return LOGO + "\n"
+                + "Hello! I'm Elora - part friend, part philosopher, part guide.\n"
+                + "What can I do for you?";
     }
 
     /**
@@ -59,110 +59,114 @@ public class Ui {
     }
 
     /**
-     * Prints the farewell message shown when the user exits.
-     */
-    public void showGoodbye() {
-        System.out.println("Bye for now, friend. Until our paths cross again!");
-    }
-
-    /**
-     * Prints an error message to the user.
+     * Returns the farewell message shown when the user exits.
      *
-     * @param message The error message to display.
+     * @return The goodbye message.
      */
-    public void showError(String message) {
-        System.out.println(message);
+    public String goodbyeMessage() {
+        return "Bye for now, friend. Until our paths cross again!";
     }
 
     /**
-     * Prints confirmation that a task was added.
+     * Returns confirmation that a task was added.
      *
      * @param task The task that was added.
      * @param totalCount The total number of tasks now in the list.
+     * @return The task-added confirmation message.
      */
-    public void showTaskAdded(Task task, int totalCount) {
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + task);
-        System.out.println("Now you have " + totalCount + " tasks in the list.");
+    public String taskAddedMessage(Task task, int totalCount) {
+        return "Got it. I've added this task:\n"
+                + "  " + task + "\n"
+                + "Now you have " + totalCount + " tasks in the list.";
     }
 
     /**
-     * Prints confirmation that a task was marked as done.
+     * Returns confirmation that a task was marked as done.
      *
      * @param task The task that was marked.
+     * @return The task-marked confirmation message.
      */
-    public void showTaskMarked(Task task) {
-        System.out.println("Nice! I've marked this task as done:");
-        System.out.println("  " + task);
+    public String taskMarkedMessage(Task task) {
+        return "Nice! I've marked this task as done:\n"
+                + "  " + task;
     }
 
     /**
-     * Prints confirmation that a task was marked as not done.
+     * Returns confirmation that a task was marked as not done.
      *
      * @param task The task that was unmarked.
+     * @return The task-unmarked confirmation message.
      */
-    public void showTaskUnmarked(Task task) {
-        System.out.println("OK, I've marked this task as not done yet:");
-        System.out.println("  " + task);
+    public String taskUnmarkedMessage(Task task) {
+        return "OK, I've marked this task as not done yet:\n"
+                + "  " + task;
     }
 
     /**
-     * Prints confirmation that a task was deleted.
+     * Returns confirmation that a task was deleted.
      *
      * @param task The task that was removed.
      * @param totalCount The total number of tasks remaining in the list.
+     * @return The task-deleted confirmation message.
      */
-    public void showTaskDeleted(Task task, int totalCount) {
-        System.out.println("Noted. I've removed this task:");
-        System.out.println("  " + task);
-        System.out.println("Now you have " + totalCount + " tasks in the list.");
+    public String taskDeletedMessage(Task task, int totalCount) {
+        return "Noted. I've removed this task:\n"
+                + "  " + task + "\n"
+                + "Now you have " + totalCount + " tasks in the list.";
     }
 
     /**
-     * Prints every task in the given list, numbered from 1.
+     * Returns every task in the given list, numbered from 1.
      *
      * @param tasks The task list to display.
+     * @return The formatted task list message.
      */
-    public void showTaskList(TaskList tasks) {
-        System.out.println("Here are the tasks in your list:");
+    public String taskListMessage(TaskList tasks) {
+        StringBuilder message = new StringBuilder("Here are the tasks in your list:");
         for (int i = 0; i < tasks.size(); i++) {
-            System.out.println((i + 1) + "." + tasks.get(i));
+            message.append("\n").append(i + 1).append(".").append(tasks.get(i));
         }
+        return message.toString();
     }
 
     /**
-     * Prints the tasks matching a keyword search, or a message saying
+     * Returns the tasks matching a keyword search, or a message saying
      * none matched.
      *
      * @param matches The tasks whose description matched the search.
+     * @return The formatted matching-tasks message.
      */
-    public void showMatchingTasks(List<Task> matches) {
-        System.out.println("Here are the matching tasks in your list:");
+    public String matchingTasksMessage(List<Task> matches) {
+        StringBuilder message = new StringBuilder("Here are the matching tasks in your list:");
         if (matches.isEmpty()) {
-            System.out.println("  No tasks match that yet.");
+            message.append("\n  No tasks match that yet.");
         } else {
             for (int i = 0; i < matches.size(); i++) {
-                System.out.println((i + 1) + "." + matches.get(i));
+                message.append("\n").append(i + 1).append(".").append(matches.get(i));
             }
         }
+        return message.toString();
     }
 
     /**
-     * Prints the tasks occurring on a given date, or a message saying
+     * Returns the tasks occurring on a given date, or a message saying
      * there are none.
      *
      * @param date The date being queried.
      * @param matches The tasks that occur on that date.
+     * @return The formatted tasks-on-date message.
      */
-    public void showTasksOnDate(LocalDate date, List<Task> matches) {
-        System.out.println("Here's what's happening on " + date.format(DISPLAY_DATE_FORMAT) + ":");
+    public String tasksOnDateMessage(LocalDate date, List<Task> matches) {
+        StringBuilder message = new StringBuilder(
+                "Here's what's happening on " + date.format(DISPLAY_DATE_FORMAT) + ":");
         if (matches.isEmpty()) {
-            System.out.println("  Nothing on your list for that day.");
+            message.append("\n  Nothing on your list for that day.");
         } else {
             for (Task task : matches) {
-                System.out.println("  " + task);
+                message.append("\n  ").append(task);
             }
         }
+        return message.toString();
     }
 
     /**
