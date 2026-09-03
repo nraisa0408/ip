@@ -108,27 +108,27 @@ public class Storage {
 
         Task task;
         switch (type) {
-        case "T":
-            task = new Todo(description);
-            break;
-        case "D":
-            if (parts.length < 4) {
-                throw new EloraException("Deadline line is missing its date: " + fileLine);
-            }
-            try {
-                task = new Deadline(description, LocalDate.parse(parts[3]));
-            } catch (DateTimeParseException e) {
-                throw new EloraException("Deadline line has an unreadable date: " + fileLine);
-            }
-            break;
-        case "E":
-            if (parts.length < 5) {
-                throw new EloraException("Event line is missing its from/to times: " + fileLine);
-            }
-            task = new Event(description, parts[3], parts[4]);
-            break;
-        default:
-            throw new EloraException("Unrecognized task type \"" + type + "\": " + fileLine);
+            case "T":
+                task = new Todo(description);
+                break;
+            case "D":
+                if (parts.length < 4) {
+                    throw new EloraException("Deadline line is missing its date: " + fileLine);
+                }
+                try {
+                    task = new Deadline(description, LocalDate.parse(parts[3]));
+                } catch (DateTimeParseException e) {
+                    throw new EloraException("Deadline line has an unreadable date: " + fileLine);
+                }
+                break;
+            case "E":
+                if (parts.length < 5) {
+                    throw new EloraException("Event line is missing its from/to times: " + fileLine);
+                }
+                task = new Event(description, parts[3], parts[4]);
+                break;
+            default:
+                throw new EloraException("Unrecognized task type \"" + type + "\": " + fileLine);
         }
         if (isDone) {
             task.markAsDone();
