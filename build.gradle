@@ -16,6 +16,23 @@ repositories {
 
 dependencies {
     String jUnitVersion = '5.14.4'
+    // Matches the sample build.gradle in the SE-EDU JavaFX tutorial: declaring all three OS
+    // classifiers (not just the one matching the dev machine) means the built jar runs on any
+    // OS, even though the bundled Zulu FX JDK used here doesn't need them itself to compile/run.
+    String javaFxVersion = '17.0.7'
+
+    implementation("org.openjfx:javafx-base:${javaFxVersion}:win")
+    implementation("org.openjfx:javafx-base:${javaFxVersion}:mac")
+    implementation("org.openjfx:javafx-base:${javaFxVersion}:linux")
+    implementation("org.openjfx:javafx-controls:${javaFxVersion}:win")
+    implementation("org.openjfx:javafx-controls:${javaFxVersion}:mac")
+    implementation("org.openjfx:javafx-controls:${javaFxVersion}:linux")
+    implementation("org.openjfx:javafx-fxml:${javaFxVersion}:win")
+    implementation("org.openjfx:javafx-fxml:${javaFxVersion}:mac")
+    implementation("org.openjfx:javafx-fxml:${javaFxVersion}:linux")
+    implementation("org.openjfx:javafx-graphics:${javaFxVersion}:win")
+    implementation("org.openjfx:javafx-graphics:${javaFxVersion}:mac")
+    implementation("org.openjfx:javafx-graphics:${javaFxVersion}:linux")
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
 
