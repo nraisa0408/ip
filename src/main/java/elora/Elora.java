@@ -13,7 +13,10 @@ import elora.task.Todo;
 /**
  * Entry point and main command loop for the Elora chatbot: a personal
  * assistant that tracks todos, deadlines, and events entered via a
- * simple text command language.
+ * simple text command language. Command execution is exposed both as a
+ * blocking console loop ({@link #run()}) and as a single-shot
+ * {@link #getResponse(String)} call, so the same logic can back either a
+ * CLI or a GUI front end.
  */
 public class Elora {
     private static final String DATA_FILE_PATH = "data" + File.separator + "elora.txt";
@@ -35,203 +38,29 @@ public class Elora {
     }
 
     /**
+     * Creates an Elora instance using the default save file location.
+     */
+    public Elora() {
+        this(DATA_FILE_PATH);
+    }
+
+    /**
      * Runs the main command loop: greets the user, then repeatedly reads
      * a command, executes it, and prints the result, until the user
      * types "bye".
      */
     public void run() {
-        ui.showWelcome();
+        System.out.println(ui.welcomeMessage());
         boolean isExit = false;
         while (!isExit) {
             String input = ui.readCommand();
             ui.showLine();
 
             try {
-                String commandWord = Parser.getCommandWord(input);
-                String arguments = Parser.getArguments(input);
-                CommandType commandType = Parser.parseCommandType(commandWord);
-
-                switch (commandType) {
-                    case BYE: {
-                        ui.showGoodbye();
-                        isExit = true;
-                        break;
-                    }
-                    case LIST: {
-                        ui.showTaskList(tasks);
-                        break;
-                    }
-                    case MARK: {
-                        if (arguments.isEmpty()) {
-                            throw new EloraException(
-                                    "Hold on - which task should I mark done? Give me a number, like mark 2.");
-                        }
-                        int index;
-                        try {
-                            index = Integer.parseInt(arguments) - 1;
-                        } catch (NumberFormatException e) {
-                            throw new EloraException(
-                                    "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
-                        }
-                        if (index < 0 || index >= tasks.size()) {
-                            throw new EloraException(
-                                    "Hold on - I don't see a task numbered " + arguments
-                                    + ". Take another look at your list?");
-                        }
-                        Task task = tasks.get(index);
-                        task.markAsDone();
-                        storage.save(tasks.getAll());
-                        ui.showTaskMarked(task);
-                        break;
-                    }
-                    case UNMARK: {
-                        if (arguments.isEmpty()) {
-                            throw new EloraException(
-                                    "Hold on - which task should I unmark? Give me a number, like unmark 2.");
-                        }
-                        int index;
-                        try {
-                            index = Integer.parseInt(arguments) - 1;
-                        } catch (NumberFormatException e) {
-                            throw new EloraException(
-                                    "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
-                        }
-                        if (index < 0 || index >= tasks.size()) {
-                            throw new EloraException(
-                                    "Hold on - I don't see a task numbered " + arguments
-                                    + ". Take another look at your list?");
-                        }
-                        Task task = tasks.get(index);
-                        task.markAsNotDone();
-                        storage.save(tasks.getAll());
-                        ui.showTaskUnmarked(task);
-                        break;
-                    }
-                    case DELETE: {
-                        if (arguments.isEmpty()) {
-                            throw new EloraException(
-                                    "Hold on - which task should I delete? Give me a number, like delete 2.");
-                        }
-                        int index;
-                        try {
-                            index = Integer.parseInt(arguments) - 1;
-                        } catch (NumberFormatException e) {
-                            throw new EloraException(
-                                    "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
-                        }
-                        if (index < 0 || index >= tasks.size()) {
-                            throw new EloraException(
-                                    "Hold on - I don't see a task numbered " + arguments
-                                    + ". Take another look at your list?");
-                        }
-                        Task removed = tasks.remove(index);
-                        storage.save(tasks.getAll());
-                        ui.showTaskDeleted(removed, tasks.size());
-                        break;
-                    }
-                    case TODO: {
-                        if (arguments.isEmpty()) {
-                            throw new EloraException(
-                                    "Hold on - a todo needs a description. What would you like to remember?");
-                        }
-                        Task task = new Todo(arguments);
-                        tasks.add(task);
-                        storage.save(tasks.getAll());
-                        ui.showTaskAdded(task, tasks.size());
-                        break;
-                    }
-                    case DEADLINE: {
-                        if (arguments.isEmpty()) {
-                            throw new EloraException(
-                                    "Hold on - a deadline needs a description too. What's due?");
-                        }
-                        if (!arguments.contains(" /by ")) {
-                            throw new EloraException("Hold on - I'll need a /by time to know when this"
-                                    + " is due. Try: deadline return book /by Sunday");
-                        }
-                        String[] parts = arguments.split(" /by ", 2);
-                        String description = parts[0].trim();
-                        String byString = parts[1].trim();
-                        if (description.isEmpty()) {
-                            throw new EloraException(
-                                    "Hold on - a deadline needs a description too. What's due?");
-                        }
-                        if (byString.isEmpty()) {
-                            throw new EloraException(
-                                    "Hold on - you've given me a /by, but no actual date. When's this due?");
-                        }
-                        LocalDate by;
-                        try {
-                            by = LocalDate.parse(byString);
-                        } catch (DateTimeParseException e) {
-                            throw new EloraException(
-                                    "Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
-                        }
-                        Task task = new Deadline(description, by);
-                        tasks.add(task);
-                        storage.save(tasks.getAll());
-                        ui.showTaskAdded(task, tasks.size());
-                        break;
-                    }
-                    case EVENT: {
-                        if (arguments.isEmpty()) {
-                            throw new EloraException("Hold on - an event needs a description. What's happening?");
-                        }
-                        if (!arguments.contains(" /from ")) {
-                            throw new EloraException("Hold on - I'll need a /from time to know when this"
-                                    + " starts. Try: event meeting /from Mon 2pm /to 4pm");
-                        }
-                        String[] fromParts = arguments.split(" /from ", 2);
-                        String description = fromParts[0].trim();
-                        if (description.isEmpty()) {
-                            throw new EloraException("Hold on - an event needs a description. What's happening?");
-                        }
-                        if (!fromParts[1].contains(" /to ")) {
-                            throw new EloraException("Hold on - I still need a /to time to know when this ends.");
-                        }
-                        String[] toParts = fromParts[1].split(" /to ", 2);
-                        String from = toParts[0].trim();
-                        String to = toParts[1].trim();
-                        if (from.isEmpty()) {
-                            throw new EloraException(
-                                    "Hold on - when does this begin? I'm missing the /from time.");
-                        }
-                        if (to.isEmpty()) {
-                            throw new EloraException("Hold on - and when does it end? I'm missing the /to time.");
-                        }
-                        Task task = new Event(description, from, to);
-                        tasks.add(task);
-                        storage.save(tasks.getAll());
-                        ui.showTaskAdded(task, tasks.size());
-                        break;
-                    }
-                    case ON: {
-                        if (arguments.isEmpty()) {
-                            throw new EloraException("Hold on - which date? Try: on 2019-10-15");
-                        }
-                        LocalDate targetDate;
-                        try {
-                            targetDate = LocalDate.parse(arguments);
-                        } catch (DateTimeParseException e) {
-                            throw new EloraException(
-                                    "Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
-                        }
-                        ui.showTasksOnDate(targetDate, tasks.getTasksOnDate(targetDate));
-                        break;
-                    }
-                    case FIND: {
-                        if (arguments.isEmpty()) {
-                            throw new EloraException("Hold on - what should I search for? Try: find book");
-                        }
-                        ui.showMatchingTasks(tasks.findTasks(arguments));
-                        break;
-                    }
-                    default:
-                        throw new EloraException(
-                                "Hold on - I don't recognize that one yet. Could you rephrase it?");
-                }
+                System.out.println(executeCommand(input));
+                isExit = isExitCommand(input);
             } catch (EloraException e) {
-                ui.showError(e.getMessage());
+                System.out.println(e.getMessage());
             }
 
             ui.showLine();
@@ -240,7 +69,227 @@ public class Elora {
     }
 
     /**
-     * Launches the application.
+     * Returns Elora's initial greeting, for a GUI to display as its
+     * first message.
+     *
+     * @return The welcome message.
+     */
+    public String getWelcomeMessage() {
+        return ui.welcomeMessage();
+    }
+
+    /**
+     * Executes a single line of user input and returns Elora's reply,
+     * for a GUI to display. Errors are reported as the returned text
+     * rather than thrown.
+     *
+     * @param input The full line of user input.
+     * @return Elora's reply to that input.
+     */
+    public String getResponse(String input) {
+        try {
+            return executeCommand(input);
+        } catch (EloraException e) {
+            return e.getMessage();
+        }
+    }
+
+    /**
+     * Returns whether the given input is the command that ends the
+     * session, so a GUI knows when to close.
+     *
+     * @param input The full line of user input.
+     * @return true if the input is the "bye" command.
+     */
+    public boolean isExitCommand(String input) {
+        return Parser.parseCommandType(Parser.getCommandWord(input)) == CommandType.BYE;
+    }
+
+    /**
+     * Parses and executes a single line of user input against the task
+     * list, returning Elora's reply.
+     *
+     * @param input The full line of user input.
+     * @return Elora's reply to that input.
+     * @throws EloraException If the input can't be understood or acted on.
+     */
+    private String executeCommand(String input) throws EloraException {
+        String commandWord = Parser.getCommandWord(input);
+        String arguments = Parser.getArguments(input);
+        CommandType commandType = Parser.parseCommandType(commandWord);
+
+        switch (commandType) {
+            case BYE: {
+                return ui.goodbyeMessage();
+            }
+            case LIST: {
+                return ui.taskListMessage(tasks);
+            }
+            case MARK: {
+                if (arguments.isEmpty()) {
+                    throw new EloraException(
+                            "Hold on - which task should I mark done? Give me a number, like mark 2.");
+                }
+                int index;
+                try {
+                    index = Integer.parseInt(arguments) - 1;
+                } catch (NumberFormatException e) {
+                    throw new EloraException(
+                            "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
+                }
+                if (index < 0 || index >= tasks.size()) {
+                    throw new EloraException(
+                            "Hold on - I don't see a task numbered " + arguments
+                            + ". Take another look at your list?");
+                }
+                Task task = tasks.get(index);
+                task.markAsDone();
+                storage.save(tasks.getAll());
+                return ui.taskMarkedMessage(task);
+            }
+            case UNMARK: {
+                if (arguments.isEmpty()) {
+                    throw new EloraException(
+                            "Hold on - which task should I unmark? Give me a number, like unmark 2.");
+                }
+                int index;
+                try {
+                    index = Integer.parseInt(arguments) - 1;
+                } catch (NumberFormatException e) {
+                    throw new EloraException(
+                            "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
+                }
+                if (index < 0 || index >= tasks.size()) {
+                    throw new EloraException(
+                            "Hold on - I don't see a task numbered " + arguments
+                            + ". Take another look at your list?");
+                }
+                Task task = tasks.get(index);
+                task.markAsNotDone();
+                storage.save(tasks.getAll());
+                return ui.taskUnmarkedMessage(task);
+            }
+            case DELETE: {
+                if (arguments.isEmpty()) {
+                    throw new EloraException(
+                            "Hold on - which task should I delete? Give me a number, like delete 2.");
+                }
+                int index;
+                try {
+                    index = Integer.parseInt(arguments) - 1;
+                } catch (NumberFormatException e) {
+                    throw new EloraException(
+                            "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
+                }
+                if (index < 0 || index >= tasks.size()) {
+                    throw new EloraException(
+                            "Hold on - I don't see a task numbered " + arguments
+                            + ". Take another look at your list?");
+                }
+                Task removed = tasks.remove(index);
+                storage.save(tasks.getAll());
+                return ui.taskDeletedMessage(removed, tasks.size());
+            }
+            case TODO: {
+                if (arguments.isEmpty()) {
+                    throw new EloraException(
+                            "Hold on - a todo needs a description. What would you like to remember?");
+                }
+                Task task = new Todo(arguments);
+                tasks.add(task);
+                storage.save(tasks.getAll());
+                return ui.taskAddedMessage(task, tasks.size());
+            }
+            case DEADLINE: {
+                if (arguments.isEmpty()) {
+                    throw new EloraException(
+                            "Hold on - a deadline needs a description too. What's due?");
+                }
+                if (!arguments.contains(" /by ")) {
+                    throw new EloraException("Hold on - I'll need a /by time to know when this"
+                            + " is due. Try: deadline return book /by Sunday");
+                }
+                String[] parts = arguments.split(" /by ", 2);
+                String description = parts[0].trim();
+                String byString = parts[1].trim();
+                if (description.isEmpty()) {
+                    throw new EloraException(
+                            "Hold on - a deadline needs a description too. What's due?");
+                }
+                if (byString.isEmpty()) {
+                    throw new EloraException(
+                            "Hold on - you've given me a /by, but no actual date. When's this due?");
+                }
+                LocalDate by;
+                try {
+                    by = LocalDate.parse(byString);
+                } catch (DateTimeParseException e) {
+                    throw new EloraException(
+                            "Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
+                }
+                Task task = new Deadline(description, by);
+                tasks.add(task);
+                storage.save(tasks.getAll());
+                return ui.taskAddedMessage(task, tasks.size());
+            }
+            case EVENT: {
+                if (arguments.isEmpty()) {
+                    throw new EloraException("Hold on - an event needs a description. What's happening?");
+                }
+                if (!arguments.contains(" /from ")) {
+                    throw new EloraException("Hold on - I'll need a /from time to know when this"
+                            + " starts. Try: event meeting /from Mon 2pm /to 4pm");
+                }
+                String[] fromParts = arguments.split(" /from ", 2);
+                String description = fromParts[0].trim();
+                if (description.isEmpty()) {
+                    throw new EloraException("Hold on - an event needs a description. What's happening?");
+                }
+                if (!fromParts[1].contains(" /to ")) {
+                    throw new EloraException("Hold on - I still need a /to time to know when this ends.");
+                }
+                String[] toParts = fromParts[1].split(" /to ", 2);
+                String from = toParts[0].trim();
+                String to = toParts[1].trim();
+                if (from.isEmpty()) {
+                    throw new EloraException(
+                            "Hold on - when does this begin? I'm missing the /from time.");
+                }
+                if (to.isEmpty()) {
+                    throw new EloraException("Hold on - and when does it end? I'm missing the /to time.");
+                }
+                Task task = new Event(description, from, to);
+                tasks.add(task);
+                storage.save(tasks.getAll());
+                return ui.taskAddedMessage(task, tasks.size());
+            }
+            case ON: {
+                if (arguments.isEmpty()) {
+                    throw new EloraException("Hold on - which date? Try: on 2019-10-15");
+                }
+                LocalDate targetDate;
+                try {
+                    targetDate = LocalDate.parse(arguments);
+                } catch (DateTimeParseException e) {
+                    throw new EloraException(
+                            "Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
+                }
+                return ui.tasksOnDateMessage(targetDate, tasks.getTasksOnDate(targetDate));
+            }
+            case FIND: {
+                if (arguments.isEmpty()) {
+                    throw new EloraException("Hold on - what should I search for? Try: find book");
+                }
+                return ui.matchingTasksMessage(tasks.findTasks(arguments));
+            }
+            default:
+                throw new EloraException(
+                        "Hold on - I don't recognize that one yet. Could you rephrase it?");
+        }
+    }
+
+    /**
+     * Launches the console version of the application.
      *
      * @param args Not used.
      */
