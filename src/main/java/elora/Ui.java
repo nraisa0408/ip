@@ -32,14 +32,26 @@ public class Ui {
     }
 
     /**
+     * Joins a fixed number of lines with newlines, for messages built
+     * from a handful of known parts rather than a runtime-sized
+     * collection.
+     *
+     * @param lines The lines to join, in order.
+     * @return The lines joined with newline separators.
+     */
+    private static String joinLines(String... lines) {
+        return String.join("\n", lines);
+    }
+
+    /**
      * Returns the startup banner and greeting.
      *
      * @return The welcome message.
      */
     public String welcomeMessage() {
-        return LOGO + "\n"
-                + "Hello! I'm Elora - part friend, part philosopher, part guide.\n"
-                + "What can I do for you?";
+        return joinLines(LOGO,
+                "Hello! I'm Elora - part friend, part philosopher, part guide.",
+                "What can I do for you?");
     }
 
     /**
@@ -75,9 +87,9 @@ public class Ui {
      * @return The task-added confirmation message.
      */
     public String taskAddedMessage(Task task, int totalCount) {
-        return "Got it. I've added this task:\n"
-                + "  " + task + "\n"
-                + "Now you have " + totalCount + " tasks in the list.";
+        return joinLines("Got it. I've added this task:",
+                "  " + task,
+                "Now you have " + totalCount + " tasks in the list.");
     }
 
     /**
@@ -87,8 +99,7 @@ public class Ui {
      * @return The task-marked confirmation message.
      */
     public String taskMarkedMessage(Task task) {
-        return "Nice! I've marked this task as done:\n"
-                + "  " + task;
+        return joinLines("Nice! I've marked this task as done:", "  " + task);
     }
 
     /**
@@ -98,8 +109,7 @@ public class Ui {
      * @return The task-unmarked confirmation message.
      */
     public String taskUnmarkedMessage(Task task) {
-        return "OK, I've marked this task as not done yet:\n"
-                + "  " + task;
+        return joinLines("OK, I've marked this task as not done yet:", "  " + task);
     }
 
     /**
@@ -110,9 +120,9 @@ public class Ui {
      * @return The task-deleted confirmation message.
      */
     public String taskDeletedMessage(Task task, int totalCount) {
-        return "Noted. I've removed this task:\n"
-                + "  " + task + "\n"
-                + "Now you have " + totalCount + " tasks in the list.";
+        return joinLines("Noted. I've removed this task:",
+                "  " + task,
+                "Now you have " + totalCount + " tasks in the list.");
     }
 
     /**
