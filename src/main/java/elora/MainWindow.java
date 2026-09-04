@@ -51,6 +51,7 @@ public class MainWindow {
      */
     @FXML
     private void handleUserInput() {
+        assert elora != null : "setElora() must be called before the window can handle input";
         String input = userInput.getText();
         if (input.isBlank()) {
             return;

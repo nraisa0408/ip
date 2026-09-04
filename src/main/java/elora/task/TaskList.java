@@ -43,6 +43,8 @@ public class TaskList {
      * @return The task that was removed.
      */
     public Task remove(int index) {
+        assert index >= 0 && index < tasks.size()
+                : "caller (Elora) should have already validated this index against the current size";
         return tasks.remove(index);
     }
 
@@ -53,6 +55,8 @@ public class TaskList {
      * @return The task at that index.
      */
     public Task get(int index) {
+        assert index >= 0 && index < tasks.size()
+                : "caller (Elora) should have already validated this index against the current size";
         return tasks.get(index);
     }
 
