@@ -2,6 +2,7 @@ package elora.task;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 /**
  * Contains the task list and the operations that can be performed on it,
@@ -77,14 +78,10 @@ public class TaskList {
      * @return A new list containing only the matching tasks, possibly empty.
      */
     public ArrayList<Task> findTasks(String keyword) {
-        ArrayList<Task> matches = new ArrayList<>();
         String lowerKeyword = keyword.toLowerCase();
-        for (Task task : tasks) {
-            if (task.getDescription().toLowerCase().contains(lowerKeyword)) {
-                matches.add(task);
-            }
-        }
-        return matches;
+        return tasks.stream()
+                .filter(task -> task.getDescription().toLowerCase().contains(lowerKeyword))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -94,12 +91,8 @@ public class TaskList {
      * @return A new list containing only the matching tasks, possibly empty.
      */
     public ArrayList<Task> getTasksOnDate(LocalDate date) {
-        ArrayList<Task> matches = new ArrayList<>();
-        for (Task task : tasks) {
-            if (task.isOccurringOn(date)) {
-                matches.add(task);
-            }
-        }
-        return matches;
+        return tasks.stream()
+                .filter(task -> task.isOccurringOn(date))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }
