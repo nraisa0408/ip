@@ -20,6 +20,9 @@ import elora.task.Todo;
  */
 public class Elora {
     private static final String DATA_FILE_PATH = "data" + File.separator + "elora.txt";
+    private static final String BY_DELIMITER = " /by ";
+    private static final String FROM_DELIMITER = " /from ";
+    private static final String TO_DELIMITER = " /to ";
 
     private Storage storage;
     private TaskList tasks;
@@ -126,66 +129,24 @@ public class Elora {
                 return ui.taskListMessage(tasks);
             }
             case MARK: {
-                if (arguments.isEmpty()) {
-                    throw new EloraException(
-                            "Hold on - which task should I mark done? Give me a number, like mark 2.");
-                }
-                int index;
-                try {
-                    index = Integer.parseInt(arguments) - 1;
-                } catch (NumberFormatException e) {
-                    throw new EloraException(
-                            "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
-                }
-                if (index < 0 || index >= tasks.size()) {
-                    throw new EloraException(
-                            "Hold on - I don't see a task numbered " + arguments
-                            + ". Take another look at your list?");
-                }
+                int index = parseTaskIndex(arguments,
+                        "Hold on - which task should I mark done? Give me a number, like mark 2.");
                 Task task = tasks.get(index);
                 task.markAsDone();
                 storage.save(tasks.getAll());
                 return ui.taskMarkedMessage(task);
             }
             case UNMARK: {
-                if (arguments.isEmpty()) {
-                    throw new EloraException(
-                            "Hold on - which task should I unmark? Give me a number, like unmark 2.");
-                }
-                int index;
-                try {
-                    index = Integer.parseInt(arguments) - 1;
-                } catch (NumberFormatException e) {
-                    throw new EloraException(
-                            "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
-                }
-                if (index < 0 || index >= tasks.size()) {
-                    throw new EloraException(
-                            "Hold on - I don't see a task numbered " + arguments
-                            + ". Take another look at your list?");
-                }
+                int index = parseTaskIndex(arguments,
+                        "Hold on - which task should I unmark? Give me a number, like unmark 2.");
                 Task task = tasks.get(index);
                 task.markAsNotDone();
                 storage.save(tasks.getAll());
                 return ui.taskUnmarkedMessage(task);
             }
             case DELETE: {
-                if (arguments.isEmpty()) {
-                    throw new EloraException(
-                            "Hold on - which task should I delete? Give me a number, like delete 2.");
-                }
-                int index;
-                try {
-                    index = Integer.parseInt(arguments) - 1;
-                } catch (NumberFormatException e) {
-                    throw new EloraException(
-                            "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
-                }
-                if (index < 0 || index >= tasks.size()) {
-                    throw new EloraException(
-                            "Hold on - I don't see a task numbered " + arguments
-                            + ". Take another look at your list?");
-                }
+                int index = parseTaskIndex(arguments,
+                        "Hold on - which task should I delete? Give me a number, like delete 2.");
                 Task removed = tasks.remove(index);
                 storage.save(tasks.getAll());
                 return ui.taskDeletedMessage(removed, tasks.size());
@@ -205,11 +166,11 @@ public class Elora {
                     throw new EloraException(
                             "Hold on - a deadline needs a description too. What's due?");
                 }
-                if (!arguments.contains(" /by ")) {
+                if (!arguments.contains(BY_DELIMITER)) {
                     throw new EloraException("Hold on - I'll need a /by time to know when this"
                             + " is due. Try: deadline return book /by Sunday");
                 }
-                String[] parts = arguments.split(" /by ", 2);
+                String[] parts = arguments.split(BY_DELIMITER, 2);
                 String description = parts[0].trim();
                 String byString = parts[1].trim();
                 if (description.isEmpty()) {
@@ -236,19 +197,19 @@ public class Elora {
                 if (arguments.isEmpty()) {
                     throw new EloraException("Hold on - an event needs a description. What's happening?");
                 }
-                if (!arguments.contains(" /from ")) {
+                if (!arguments.contains(FROM_DELIMITER)) {
                     throw new EloraException("Hold on - I'll need a /from time to know when this"
                             + " starts. Try: event meeting /from Mon 2pm /to 4pm");
                 }
-                String[] fromParts = arguments.split(" /from ", 2);
+                String[] fromParts = arguments.split(FROM_DELIMITER, 2);
                 String description = fromParts[0].trim();
                 if (description.isEmpty()) {
                     throw new EloraException("Hold on - an event needs a description. What's happening?");
                 }
-                if (!fromParts[1].contains(" /to ")) {
+                if (!fromParts[1].contains(TO_DELIMITER)) {
                     throw new EloraException("Hold on - I still need a /to time to know when this ends.");
                 }
-                String[] toParts = fromParts[1].split(" /to ", 2);
+                String[] toParts = fromParts[1].split(TO_DELIMITER, 2);
                 String from = toParts[0].trim();
                 String to = toParts[1].trim();
                 if (from.isEmpty()) {
@@ -286,6 +247,37 @@ public class Elora {
                 throw new EloraException(
                         "Hold on - I don't recognize that one yet. Could you rephrase it?");
         }
+    }
+
+    /**
+     * Parses a 1-based task number argument (as used by mark/unmark/delete)
+     * into a validated 0-based index into the current task list.
+     *
+     * @param arguments The raw argument text following the command word.
+     * @param missingIndexMessage The error to report if arguments is empty,
+     *     since that message differs by command (e.g. "which task should I
+     *     mark done?" vs "...delete?").
+     * @return The validated, 0-based task index.
+     * @throws EloraException If the argument is missing, not a number, or
+     *     out of range for the current task list.
+     */
+    private int parseTaskIndex(String arguments, String missingIndexMessage) throws EloraException {
+        if (arguments.isEmpty()) {
+            throw new EloraException(missingIndexMessage);
+        }
+        int index;
+        try {
+            index = Integer.parseInt(arguments) - 1;
+        } catch (NumberFormatException e) {
+            throw new EloraException(
+                    "Hold on - \"" + arguments + "\" doesn't look like a task number to me.");
+        }
+        if (index < 0 || index >= tasks.size()) {
+            throw new EloraException(
+                    "Hold on - I don't see a task numbered " + arguments
+                    + ". Take another look at your list?");
+        }
+        return index;
     }
 
     /**
