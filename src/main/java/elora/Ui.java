@@ -133,7 +133,31 @@ public class Ui {
      * @return The formatted task list message.
      */
     public String taskListMessage(TaskList tasks) {
-        StringBuilder message = new StringBuilder("Here are the tasks in your list:");
+        return numberedTaskListMessage("Here are the tasks in your list:", tasks);
+    }
+
+    /**
+     * Returns every task in the given list, numbered from 1, after it
+     * has been sorted by date.
+     *
+     * @param tasks The task list to display, already sorted.
+     * @return The formatted, sorted task list message.
+     */
+    public String taskListSortedMessage(TaskList tasks) {
+        return numberedTaskListMessage("Got it. I've sorted your tasks by date:", tasks);
+    }
+
+    /**
+     * Formats a task list as a header line followed by every task,
+     * numbered from 1. Shared by taskListMessage() and
+     * taskListSortedMessage(), which only differ in their header.
+     *
+     * @param header The line introducing the list.
+     * @param tasks The task list to display.
+     * @return The formatted, numbered task list message.
+     */
+    private String numberedTaskListMessage(String header, TaskList tasks) {
+        StringBuilder message = new StringBuilder(header);
         for (int i = 0; i < tasks.size(); i++) {
             message.append("\n").append(i + 1).append(".").append(tasks.get(i));
         }

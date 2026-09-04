@@ -243,6 +243,11 @@ public class Elora {
                 }
                 return ui.matchingTasksMessage(tasks.findTasks(arguments));
             }
+            case SORT: {
+                tasks.sortByDate();
+                storage.save(tasks.getAll());
+                return ui.taskListSortedMessage(tasks);
+            }
             default:
                 throw new EloraException(
                         "Hold on - I don't recognize that one yet. Could you rephrase it?");

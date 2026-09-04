@@ -61,6 +61,8 @@ public class Parser {
                 return CommandType.ON;
             case "find":
                 return CommandType.FIND;
+            case "sort":
+                return CommandType.SORT;
             default:
                 return CommandType.UNKNOWN;
         }

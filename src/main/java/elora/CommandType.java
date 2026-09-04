@@ -25,6 +25,8 @@ public enum CommandType {
     ON,
     /** Finds tasks whose description contains a keyword. */
     FIND,
+    /** Sorts tasks by date, soonest-due first. */
+    SORT,
     /** Represents any command word that isn't recognized. */
     UNKNOWN
 }

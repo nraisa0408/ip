@@ -62,6 +62,17 @@ public class Task {
     }
 
     /**
+     * Returns the date used to sort this task chronologically against
+     * others, or null if this task has no single associated date. A
+     * plain Task has none; Deadline overrides this with its due date.
+     *
+     * @return This task's sort date, or null if it doesn't have one.
+     */
+    public LocalDate getSortDate() {
+        return null;
+    }
+
+    /**
      * Returns this task's representation for the save file, as
      * "&lt;0 or 1&gt; | &lt;description&gt;". Subclasses prepend their
      * type letter and append any extra fields of their own.

@@ -2,6 +2,7 @@ package elora.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDate;
 
@@ -53,5 +54,11 @@ class TaskTest {
     void isOccurringOn_anyDate_returnsFalse() {
         Task task = new Task("read book");
         assertFalse(task.isOccurringOn(LocalDate.parse("2019-10-15")));
+    }
+
+    @Test
+    void getSortDate_plainTask_returnsNull() {
+        Task task = new Task("read book");
+        assertNull(task.getSortDate());
     }
 }
