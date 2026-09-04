@@ -40,6 +40,7 @@ public class Ui {
      * @return The lines joined with newline separators.
      */
     private static String joinLines(String... lines) {
+        assert lines.length > 0 : "joinLines is only ever called with a literal, non-empty list of lines";
         return String.join("\n", lines);
     }
 

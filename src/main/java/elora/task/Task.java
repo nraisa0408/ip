@@ -16,6 +16,8 @@ public class Task {
      * @param description What the task is about.
      */
     public Task(String description) {
+        assert description != null && !description.isEmpty()
+                : "callers (Elora) should have already rejected null/empty descriptions before construction";
         this.description = description;
         this.isDone = false;
     }
