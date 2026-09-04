@@ -42,6 +42,8 @@ class ParserTest {
         assertEquals(CommandType.DEADLINE, Parser.parseCommandType("deadline"));
         assertEquals(CommandType.EVENT, Parser.parseCommandType("event"));
         assertEquals(CommandType.ON, Parser.parseCommandType("on"));
+        assertEquals(CommandType.FIND, Parser.parseCommandType("find"));
+        assertEquals(CommandType.SORT, Parser.parseCommandType("sort"));
     }
 
     @Test

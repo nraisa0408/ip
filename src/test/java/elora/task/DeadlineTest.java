@@ -47,4 +47,11 @@ class DeadlineTest {
         Deadline deadline = new Deadline("return book", date);
         assertEquals(date, deadline.getBy());
     }
+
+    @Test
+    void getSortDate_returnsSameAsGetBy() {
+        LocalDate date = LocalDate.parse("2019-10-15");
+        Deadline deadline = new Deadline("return book", date);
+        assertEquals(date, deadline.getSortDate());
+    }
 }

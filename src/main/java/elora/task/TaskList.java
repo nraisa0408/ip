@@ -2,6 +2,7 @@ package elora.task;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 /**
@@ -98,5 +99,14 @@ public class TaskList {
         return tasks.stream()
                 .filter(task -> task.isOccurringOn(date))
                 .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    /**
+     * Sorts the tasks in place by date: tasks with a due date (currently
+     * only deadlines) come first in chronological order, followed by
+     * every other task (todos, events) in their original relative order.
+     */
+    public void sortByDate() {
+        tasks.sort(Comparator.comparing(Task::getSortDate, Comparator.nullsLast(Comparator.naturalOrder())));
     }
 }

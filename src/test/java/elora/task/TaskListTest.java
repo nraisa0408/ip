@@ -80,4 +80,35 @@ class TaskListTest {
 
         assertEquals(0, matches.size());
     }
+
+    @Test
+    void sortByDate_deadlinesOutOfOrder_areSortedChronologically() {
+        TaskList tasks = new TaskList();
+        Deadline later = new Deadline("submit report", LocalDate.parse("2026-12-01"));
+        Deadline sooner = new Deadline("pay bills", LocalDate.parse("2019-10-15"));
+        tasks.add(later);
+        tasks.add(sooner);
+
+        tasks.sortByDate();
+
+        assertEquals(sooner, tasks.get(0));
+        assertEquals(later, tasks.get(1));
+    }
+
+    @Test
+    void sortByDate_mixOfDatedAndUndatedTasks_undatedTasksKeepRelativeOrderAtEnd() {
+        TaskList tasks = new TaskList();
+        Todo firstTodo = new Todo("water plants");
+        Deadline deadline = new Deadline("pay bills", LocalDate.parse("2019-10-15"));
+        Todo secondTodo = new Todo("read book");
+        tasks.add(firstTodo);
+        tasks.add(deadline);
+        tasks.add(secondTodo);
+
+        tasks.sortByDate();
+
+        assertEquals(deadline, tasks.get(0));
+        assertEquals(firstTodo, tasks.get(1));
+        assertEquals(secondTodo, tasks.get(2));
+    }
 }
