@@ -2,6 +2,7 @@ package elora.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDate;
@@ -60,5 +61,25 @@ class TaskTest {
     void getSortDate_plainTask_returnsNull() {
         Task task = new Task("read book");
         assertNull(task.getSortDate());
+    }
+
+    @Test
+    void equals_sameDescription_returnsTrue() {
+        assertEquals(new Task("read book"), new Task("read book"));
+    }
+
+    @Test
+    void equals_differentDescription_returnsFalse() {
+        assertNotEquals(new Task("read book"), new Task("return book"));
+    }
+
+    @Test
+    void equals_null_returnsFalse() {
+        assertNotEquals(new Task("read book"), null);
+    }
+
+    @Test
+    void hashCode_equalTasks_haveEqualHashCodes() {
+        assertEquals(new Task("read book").hashCode(), new Task("read book").hashCode());
     }
 }

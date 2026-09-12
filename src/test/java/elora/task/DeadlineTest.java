@@ -2,6 +2,7 @@ package elora.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
@@ -53,5 +54,29 @@ class DeadlineTest {
         LocalDate date = LocalDate.parse("2019-10-15");
         Deadline deadline = new Deadline("return book", date);
         assertEquals(date, deadline.getSortDate());
+    }
+
+    @Test
+    void equals_sameDescriptionAndDate_returnsTrue() {
+        assertEquals(new Deadline("return book", LocalDate.parse("2019-10-15")),
+                new Deadline("return book", LocalDate.parse("2019-10-15")));
+    }
+
+    @Test
+    void equals_differentDate_returnsFalse() {
+        assertNotEquals(new Deadline("return book", LocalDate.parse("2019-10-15")),
+                new Deadline("return book", LocalDate.parse("2019-10-16")));
+    }
+
+    @Test
+    void equals_differentDescription_returnsFalse() {
+        assertNotEquals(new Deadline("return book", LocalDate.parse("2019-10-15")),
+                new Deadline("submit report", LocalDate.parse("2019-10-15")));
+    }
+
+    @Test
+    void equals_notADeadline_returnsFalse() {
+        assertNotEquals(new Deadline("return book", LocalDate.parse("2019-10-15")),
+                new Todo("return book"));
     }
 }
