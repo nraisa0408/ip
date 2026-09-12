@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
 
 import elora.task.Deadline;
@@ -20,6 +22,7 @@ import elora.task.Todo;
  */
 public class Storage {
     private String filePath;
+    private final List<String> loadWarnings = new ArrayList<>();
 
     /**
      * Creates a Storage that reads from and writes to the given file path.
@@ -32,31 +35,31 @@ public class Storage {
 
     /**
      * Loads tasks from the save file. Returns an empty list if the file
-     * doesn't exist yet, e.g. on a fresh install. Lines that can't be
-     * understood are skipped with a warning rather than aborting the
-     * whole load.
+     * doesn't exist yet (e.g. on a fresh install) or can't be read (e.g.
+     * permission denied). Lines that can't be understood are skipped
+     * rather than aborting the whole load; call {@link #getLoadWarnings()}
+     * afterwards to see which lines, if any, were skipped.
      *
      * @return The tasks read from the save file, possibly empty.
      */
     public ArrayList<Task> load() {
+        loadWarnings.clear();
         ArrayList<Task> tasks = new ArrayList<>();
         File file = new File(filePath);
-        if (!file.exists()) {
+        if (!file.exists() || !file.canRead()) {
             return tasks;
         }
         try {
             Scanner fileScanner = new Scanner(file);
             while (fileScanner.hasNextLine()) {
                 String fileLine = fileScanner.nextLine();
-                if (fileLine.trim().isEmpty()) {
+                if (fileLine.isBlank()) {
                     continue;
                 }
                 try {
                     tasks.add(parseTaskFromFileLine(fileLine));
                 } catch (EloraException e) {
-                    System.out.println(
-                            "Hold on - I found a save file line I couldn't understand, so I'm skipping it: "
-                            + fileLine);
+                    loadWarnings.add(fileLine);
                 }
             }
             fileScanner.close();
@@ -67,17 +70,31 @@ public class Storage {
     }
 
     /**
+     * Returns the save-file lines skipped by the most recent {@link #load()}
+     * call because they couldn't be understood, so the caller can warn the
+     * user instead of silently losing that data.
+     *
+     * @return The skipped lines, in file order, possibly empty.
+     */
+    public List<String> getLoadWarnings() {
+        return Collections.unmodifiableList(loadWarnings);
+    }
+
+    /**
      * Writes the given tasks to the save file, overwriting any previous
      * content. Creates the parent folder first if it doesn't exist yet.
      *
      * @param tasks The current tasks to persist.
+     * @throws EloraException If the file can't be written to, e.g.
+     *     because its folder couldn't be created or permission was denied.
      */
-    public void save(ArrayList<Task> tasks) {
+    public void save(ArrayList<Task> tasks) throws EloraException {
         try {
             File file = new File(filePath);
             File parentDir = file.getParentFile();
-            if (parentDir != null && !parentDir.exists()) {
-                parentDir.mkdirs();
+            if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
+                throw new EloraException(
+                        "Hold on - I couldn't create the folder to save your tasks in: " + parentDir);
             }
             FileWriter writer = new FileWriter(file);
             for (Task task : tasks) {
@@ -85,7 +102,7 @@ public class Storage {
             }
             writer.close();
         } catch (IOException e) {
-            System.out.println("Hold on - I couldn't save your tasks to disk: " + e.getMessage());
+            throw new EloraException("Hold on - I couldn't save your tasks to disk: " + e.getMessage());
         }
     }
 

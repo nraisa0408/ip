@@ -2,6 +2,7 @@ package elora.task;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 /**
  * Represents a task that needs to be done by a specific date.
@@ -54,5 +55,24 @@ public class Deadline extends Task {
     @Override
     public String toString() {
         return "[D]" + super.toString() + " (by: " + by.format(DISPLAY_FORMAT) + ")";
+    }
+
+    /**
+     * Returns true if {@code other} is also a Deadline with the same
+     * description and due date, so that adding a second deadline with
+     * identical details can be flagged as a duplicate.
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) {
+            return false;
+        }
+        Deadline that = (Deadline) other;
+        return by.equals(that.by);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), by);
     }
 }
