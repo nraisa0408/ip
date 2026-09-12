@@ -32,6 +32,26 @@ class ParserTest {
     }
 
     @Test
+    void getCommandWord_leadingWhitespace_isIgnored() {
+        assertEquals("todo", Parser.getCommandWord("   todo read book"));
+    }
+
+    @Test
+    void getArguments_leadingWhitespaceOnInput_isIgnored() {
+        assertEquals("read book", Parser.getArguments("   todo read book"));
+    }
+
+    @Test
+    void getCommandWord_onlyWhitespace_returnsEmptyString() {
+        assertEquals("", Parser.getCommandWord("    "));
+    }
+
+    @Test
+    void getArguments_onlyWhitespace_returnsEmptyString() {
+        assertEquals("", Parser.getArguments("    "));
+    }
+
+    @Test
     void parseCommandType_allKnownCommandWords_returnMatchingType() {
         assertEquals(CommandType.BYE, Parser.parseCommandType("bye"));
         assertEquals(CommandType.LIST, Parser.parseCommandType("list"));
