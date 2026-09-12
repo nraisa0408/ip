@@ -15,21 +15,25 @@ public class Parser {
      * @return The command word, or the entire input if it contains no space.
      */
     public static String getCommandWord(String input) {
-        int spaceIndex = input.indexOf(' ');
-        return (spaceIndex == -1) ? input : input.substring(0, spaceIndex);
+        String trimmed = input.strip();
+        int spaceIndex = trimmed.indexOf(' ');
+        return (spaceIndex == -1) ? trimmed : trimmed.substring(0, spaceIndex);
     }
 
     /**
      * Returns everything after the command word, with leading and
-     * trailing whitespace removed.
+     * trailing whitespace removed. Leading/trailing whitespace on the
+     * whole input (e.g. a user pasting "  todo book  ") is stripped
+     * first, so it never leaks into the command word or the arguments.
      *
      * @param input Full line of raw user input.
      * @return The arguments following the command word, or an empty
      *     string if the input contains no space.
      */
     public static String getArguments(String input) {
-        int spaceIndex = input.indexOf(' ');
-        return (spaceIndex == -1) ? "" : input.substring(spaceIndex + 1).trim();
+        String trimmed = input.strip();
+        int spaceIndex = trimmed.indexOf(' ');
+        return (spaceIndex == -1) ? "" : trimmed.substring(spaceIndex + 1).strip();
     }
 
     /**

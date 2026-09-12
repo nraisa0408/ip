@@ -1,6 +1,7 @@
 package elora.task;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 /**
  * Represents a task with a description and a done/not-done status.
@@ -90,5 +91,32 @@ public class Task {
     @Override
     public String toString() {
         return "[" + getStatusIcon() + "] " + description;
+    }
+
+    /**
+     * Returns whether this task has the same type and description as
+     * another, ignoring done/not-done status. Used to detect duplicate
+     * tasks when a new one is added. Subclasses with extra fields (e.g.
+     * Deadline's due date) override this to also compare those fields.
+     *
+     * @param other The object to compare against.
+     * @return true if {@code other} is a task of the same concrete type
+     *     with the same description.
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+        Task that = (Task) other;
+        return description.equals(that.description);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getClass(), description);
     }
 }

@@ -1,5 +1,7 @@
 package elora.task;
 
+import java.util.Objects;
+
 /**
  * Represents a task that spans from a start time to an end time.
  */
@@ -32,5 +34,24 @@ public class Event extends Task {
     @Override
     public String toString() {
         return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
+    }
+
+    /**
+     * Returns true if {@code other} is also an Event with the same
+     * description, start, and end, so that adding a second event with
+     * identical details can be flagged as a duplicate.
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (!super.equals(other)) {
+            return false;
+        }
+        Event that = (Event) other;
+        return from.equals(that.from) && to.equals(that.to);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), from, to);
     }
 }

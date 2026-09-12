@@ -56,6 +56,25 @@ public class Ui {
     }
 
     /**
+     * Returns a warning listing save-file lines that couldn't be
+     * understood and were skipped on load, so the user knows some data
+     * may be missing instead of silently losing it.
+     *
+     * @param skippedLines The raw save-file lines that were skipped.
+     * @return The formatted warning, e.g. to append to the welcome message.
+     */
+    public String corruptedLinesWarning(List<String> skippedLines) {
+        StringBuilder message = new StringBuilder(
+                "Heads up - your save file had " + skippedLines.size()
+                + (skippedLines.size() == 1 ? " line" : " lines")
+                + " I couldn't read, so I've left them out:");
+        for (String line : skippedLines) {
+            message.append("\n  ").append(line);
+        }
+        return message.toString();
+    }
+
+    /**
      * Prints the horizontal divider line used to frame each response.
      */
     public void showLine() {
