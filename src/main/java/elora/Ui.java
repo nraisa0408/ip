@@ -45,14 +45,26 @@ public class Ui {
     }
 
     /**
-     * Returns the startup banner and greeting.
+     * Returns the startup banner and greeting, for the console UI.
      *
-     * @return The welcome message.
+     * @return The welcome message, including the ASCII banner.
      */
     public String welcomeMessage() {
         return joinLines(LOGO,
                 "Hello! I'm Elora - part friend, part philosopher, part guide.",
                 "What can I do for you?");
+    }
+
+    /**
+     * Returns the startup greeting without the ASCII banner, for the GUI
+     * to show as its first chat bubble (an ASCII-art banner would just
+     * look like garbled text in a proportional-font speech bubble).
+     *
+     * @return The welcome message, without the ASCII banner.
+     */
+    public String chatWelcomeMessage() {
+        return joinLines("Hi, I'm Elora - part friend, part philosopher, part guide.",
+                "What can I do for you today?");
     }
 
     /**

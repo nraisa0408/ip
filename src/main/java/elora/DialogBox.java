@@ -16,10 +16,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.shape.Circle;
 
 /**
- * A single chat bubble: an avatar next to a speech-bubble label,
- * displayed left-aligned for Elora and right-aligned for the user.
+ * A single chat bubble. Elora's bubbles are left-aligned with a small
+ * avatar next to them; the user's are right-aligned, plain speech
+ * bubbles with no avatar - the conversation is between a person and an
+ * app, not two people, so the two sides deliberately don't look alike.
  */
 public class DialogBox extends HBox {
+    private static final double BUBBLE_WIDTH_FRACTION = 0.72;
+
     @FXML
     private Label dialog;
     @FXML
@@ -35,33 +39,43 @@ public class DialogBox extends HBox {
             throw new AssertionError("DialogBox.fxml should always be on the classpath", e);
         }
         dialog.setText(text);
-        displayPicture.setImage(img);
-        displayPicture.setClip(new Circle(32, 32, 32));
+        dialog.maxWidthProperty().bind(widthProperty().multiply(BUBBLE_WIDTH_FRACTION));
+        if (img != null) {
+            displayPicture.setImage(img);
+            displayPicture.setClip(new Circle(20, 20, 20));
+        }
     }
 
     /**
-     * Creates a dialog box for a message the user typed, right-aligned
-     * with the avatar on the right.
+     * Creates a dialog box for a message the user typed: a plain bubble,
+     * right-aligned, with no avatar (there's only one user in this
+     * conversation, so a repeated picture of them would add nothing).
      *
      * @param text The user's message.
-     * @param img The user's avatar.
      * @return The dialog box to add to the conversation.
      */
-    public static DialogBox getUserDialog(String text, Image img) {
-        return new DialogBox(text, img);
+    public static DialogBox getUserDialog(String text) {
+        DialogBox db = new DialogBox(text, null);
+        db.displayPicture.setVisible(false);
+        db.displayPicture.setManaged(false);
+        db.dialog.getStyleClass().add("user-bubble");
+        return db;
     }
 
     /**
-     * Creates a dialog box for one of Elora's replies, left-aligned with
-     * the avatar on the left.
+     * Creates a dialog box for one of Elora's replies: left-aligned,
+     * with her avatar, styled as an error bubble if the reply reports a
+     * problem so mistakes catch the user's attention.
      *
      * @param text Elora's reply.
      * @param img Elora's avatar.
+     * @param isError Whether this reply reports an error.
      * @return The dialog box to add to the conversation.
      */
-    public static DialogBox getEloraDialog(String text, Image img) {
+    public static DialogBox getEloraDialog(String text, Image img, boolean isError) {
         DialogBox db = new DialogBox(text, img);
         db.flip();
+        db.dialog.getStyleClass().add(isError ? "elora-bubble-error" : "elora-bubble");
         return db;
     }
 
