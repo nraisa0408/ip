@@ -6,7 +6,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 
 /**
  * Controller for MainWindow.fxml: the chat window that displays the
@@ -22,15 +24,17 @@ public class MainWindow {
     private TextField userInput;
     @FXML
     private Button sendButton;
+    @FXML
+    private ImageView headerAvatar;
 
     private Elora elora;
 
-    private final Image userImage = new Image(getClass().getResourceAsStream("/images/DaUser.png"));
-    private final Image eloraImage = new Image(getClass().getResourceAsStream("/images/DaElora.png"));
+    private final Image eloraImage = new Image(getClass().getResourceAsStream("/images/elora.png"));
 
     @FXML
     private void initialize() {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
+        headerAvatar.setClip(new Circle(18, 18, 18));
     }
 
     /**
@@ -41,12 +45,14 @@ public class MainWindow {
      */
     public void setElora(Elora elora) {
         this.elora = elora;
-        dialogContainer.getChildren().add(DialogBox.getEloraDialog(elora.getWelcomeMessage(), eloraImage));
+        dialogContainer.getChildren().add(
+                DialogBox.getEloraDialog(elora.getWelcomeMessage(), eloraImage, false));
     }
 
     /**
      * Reads the text in the input field, sends it to Elora, and appends
-     * both the user's message and Elora's reply as dialog bubbles. Exits
+     * both the user's message and Elora's reply as dialog bubbles. Error
+     * replies are styled differently so mistakes catch the eye. Exits
      * the application if the input was the "bye" command.
      */
     @FXML
@@ -56,10 +62,10 @@ public class MainWindow {
         if (input.isBlank()) {
             return;
         }
-        String response = elora.getResponse(input);
+        Response response = elora.getResponse(input);
         dialogContainer.getChildren().addAll(
-                DialogBox.getUserDialog(input, userImage),
-                DialogBox.getEloraDialog(response, eloraImage));
+                DialogBox.getUserDialog(input),
+                DialogBox.getEloraDialog(response.getText(), eloraImage, response.isError()));
         userInput.clear();
         if (elora.isExitCommand(input)) {
             Platform.exit();

@@ -84,7 +84,7 @@ public class Elora {
      * @return The welcome message.
      */
     public String getWelcomeMessage() {
-        String welcome = ui.welcomeMessage();
+        String welcome = ui.chatWelcomeMessage();
         if (storage.getLoadWarnings().isEmpty()) {
             return welcome;
         }
@@ -93,17 +93,18 @@ public class Elora {
 
     /**
      * Executes a single line of user input and returns Elora's reply,
-     * for a GUI to display. Errors are reported as the returned text
-     * rather than thrown.
+     * for a GUI to display. Errors are reported as an error
+     * {@link Response} rather than thrown, so the GUI can style them
+     * differently and catch the user's eye.
      *
      * @param input The full line of user input.
-     * @return Elora's reply to that input.
+     * @return Elora's reply to that input, marked as an error if one occurred.
      */
-    public String getResponse(String input) {
+    public Response getResponse(String input) {
         try {
-            return executeCommand(input);
+            return Response.of(executeCommand(input));
         } catch (EloraException e) {
-            return e.getMessage();
+            return Response.error(e.getMessage());
         }
     }
 
