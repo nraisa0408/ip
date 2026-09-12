@@ -33,6 +33,8 @@ public class Main extends Application {
             stage.getIcons().add(new Image(Main.class.getResourceAsStream("/images/elora.png")));
             stage.setMinWidth(380);
             stage.setMinHeight(500);
+            stage.setWidth(460);
+            stage.setHeight(640);
             fxmlLoader.<MainWindow>getController().setElora(elora);
             stage.show();
         } catch (IOException e) {
