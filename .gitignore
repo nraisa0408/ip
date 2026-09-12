@@ -8,6 +8,9 @@
 /build/
 src/main/resources/docs/
 
+# Stray compiled classes (e.g. from an IDE building into the source tree by mistake)
+*.class
+
 # MacOS custom attributes files created by Finder
 .DS_Store
 *.iml
