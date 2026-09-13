@@ -29,6 +29,16 @@ public class DialogBox extends HBox {
     @FXML
     private ImageView displayPicture;
 
+    /**
+     * Loads DialogBox.fxml as this HBox's own content, then fills in its
+     * message text and (if given) avatar image. Private: callers must go
+     * through {@link #getUserDialog(String)} or
+     * {@link #getEloraDialog(String, Image, boolean)}, which also apply
+     * the alignment and styling appropriate to who's speaking.
+     *
+     * @param text The message to display.
+     * @param img The avatar to show, or null to show no avatar.
+     */
     private DialogBox(String text, Image img) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(DialogBox.class.getResource("/view/DialogBox.fxml"));

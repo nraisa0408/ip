@@ -1,11 +1,15 @@
 package elora;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Deals with making sense of the user's raw input: splitting it into a
  * command word and its arguments, and mapping the command word to a
  * CommandType.
  */
 public class Parser {
+    private static final Map<String, CommandType> COMMAND_WORDS = buildCommandWordMap();
 
     /**
      * Returns the first word of the given input, treated as the command
@@ -44,31 +48,28 @@ public class Parser {
      *     word isn't recognized.
      */
     public static CommandType parseCommandType(String commandWord) {
-        switch (commandWord) {
-            case "bye":
-                return CommandType.BYE;
-            case "list":
-                return CommandType.LIST;
-            case "mark":
-                return CommandType.MARK;
-            case "unmark":
-                return CommandType.UNMARK;
-            case "delete":
-                return CommandType.DELETE;
-            case "todo":
-                return CommandType.TODO;
-            case "deadline":
-                return CommandType.DEADLINE;
-            case "event":
-                return CommandType.EVENT;
-            case "on":
-                return CommandType.ON;
-            case "find":
-                return CommandType.FIND;
-            case "sort":
-                return CommandType.SORT;
-            default:
-                return CommandType.UNKNOWN;
-        }
+        return COMMAND_WORDS.getOrDefault(commandWord, CommandType.UNKNOWN);
+    }
+
+    /**
+     * Builds the lookup table from command word to CommandType, used by
+     * {@link #parseCommandType(String)}.
+     *
+     * @return The command word to CommandType mapping.
+     */
+    private static Map<String, CommandType> buildCommandWordMap() {
+        Map<String, CommandType> commandWords = new HashMap<>();
+        commandWords.put("bye", CommandType.BYE);
+        commandWords.put("list", CommandType.LIST);
+        commandWords.put("mark", CommandType.MARK);
+        commandWords.put("unmark", CommandType.UNMARK);
+        commandWords.put("delete", CommandType.DELETE);
+        commandWords.put("todo", CommandType.TODO);
+        commandWords.put("deadline", CommandType.DEADLINE);
+        commandWords.put("event", CommandType.EVENT);
+        commandWords.put("on", CommandType.ON);
+        commandWords.put("find", CommandType.FIND);
+        commandWords.put("sort", CommandType.SORT);
+        return commandWords;
     }
 }

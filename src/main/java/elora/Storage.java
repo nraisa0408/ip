@@ -21,7 +21,7 @@ import elora.task.Todo;
  * it. This is the only class that touches the filesystem.
  */
 public class Storage {
-    private String filePath;
+    private final String filePath;
     private final List<String> loadWarnings = new ArrayList<>();
 
     /**
@@ -49,24 +49,33 @@ public class Storage {
         if (!file.exists() || !file.canRead()) {
             return tasks;
         }
-        try {
-            Scanner fileScanner = new Scanner(file);
+        try (Scanner fileScanner = new Scanner(file)) {
             while (fileScanner.hasNextLine()) {
-                String fileLine = fileScanner.nextLine();
-                if (fileLine.isBlank()) {
-                    continue;
-                }
-                try {
-                    tasks.add(parseTaskFromFileLine(fileLine));
-                } catch (EloraException e) {
-                    loadWarnings.add(fileLine);
-                }
+                addTaskFromLine(tasks, fileScanner.nextLine());
             }
-            fileScanner.close();
         } catch (FileNotFoundException e) {
             // File existed a moment ago (just checked) but is gone now; treat as no data yet.
         }
         return tasks;
+    }
+
+    /**
+     * Parses one save-file line and appends it to tasks, unless the line
+     * is blank (silently skipped) or malformed (skipped and recorded in
+     * {@link #loadWarnings}).
+     *
+     * @param tasks The list being built up by {@link #load()}.
+     * @param fileLine One raw line read from the save file.
+     */
+    private void addTaskFromLine(ArrayList<Task> tasks, String fileLine) {
+        if (fileLine.isBlank()) {
+            return;
+        }
+        try {
+            tasks.add(parseTaskFromFileLine(fileLine));
+        } catch (EloraException e) {
+            loadWarnings.add(fileLine);
+        }
     }
 
     /**
@@ -89,20 +98,28 @@ public class Storage {
      *     because its folder couldn't be created or permission was denied.
      */
     public void save(ArrayList<Task> tasks) throws EloraException {
-        try {
-            File file = new File(filePath);
-            File parentDir = file.getParentFile();
-            if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
-                throw new EloraException(
-                        "Hold on - I couldn't create the folder to save your tasks in: " + parentDir);
-            }
-            FileWriter writer = new FileWriter(file);
+        File file = new File(filePath);
+        ensureParentFolderExists(file);
+        try (FileWriter writer = new FileWriter(file)) {
             for (Task task : tasks) {
                 writer.write(task.toSaveFormat() + System.lineSeparator());
             }
-            writer.close();
         } catch (IOException e) {
             throw new EloraException("Hold on - I couldn't save your tasks to disk: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Creates the save file's parent folder if it doesn't already exist.
+     *
+     * @param file The save file whose parent folder must exist.
+     * @throws EloraException If the folder doesn't exist and couldn't be created.
+     */
+    private void ensureParentFolderExists(File file) throws EloraException {
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
+            throw new EloraException(
+                    "Hold on - I couldn't create the folder to save your tasks in: " + parentDir);
         }
     }
 
@@ -119,37 +136,71 @@ public class Storage {
         if (parts.length < 3) {
             throw new EloraException("Line has too few fields: " + fileLine);
         }
-        String type = parts[0];
-        boolean isDone = parts[1].equals("1");
-        String description = parts[2];
-
-        Task task;
-        switch (type) {
-            case "T":
-                task = new Todo(description);
-                break;
-            case "D":
-                if (parts.length < 4) {
-                    throw new EloraException("Deadline line is missing its date: " + fileLine);
-                }
-                try {
-                    task = new Deadline(description, LocalDate.parse(parts[3]));
-                } catch (DateTimeParseException e) {
-                    throw new EloraException("Deadline line has an unreadable date: " + fileLine);
-                }
-                break;
-            case "E":
-                if (parts.length < 5) {
-                    throw new EloraException("Event line is missing its from/to times: " + fileLine);
-                }
-                task = new Event(description, parts[3], parts[4]);
-                break;
-            default:
-                throw new EloraException("Unrecognized task type \"" + type + "\": " + fileLine);
-        }
-        if (isDone) {
+        Task task = buildTaskByType(parts[0], parts[2], parts, fileLine);
+        if (parts[1].equals("1")) {
             task.markAsDone();
         }
         return task;
+    }
+
+    /**
+     * Constructs the right Task subclass for a save-file line's type letter.
+     *
+     * @param type The type letter ("T", "D", or "E").
+     * @param description The task's description field.
+     * @param parts All fields of the save-file line, for the type-specific fields.
+     * @param fileLine The original line, for error messages.
+     * @return The constructed, not-yet-marked task.
+     * @throws EloraException If type is unrecognized or a type-specific field is
+     *     missing or invalid.
+     */
+    private Task buildTaskByType(String type, String description, String[] parts, String fileLine)
+            throws EloraException {
+        switch (type) {
+            case "T":
+                return new Todo(description);
+            case "D":
+                return parseDeadlineLine(description, parts, fileLine);
+            case "E":
+                return parseEventLine(description, parts, fileLine);
+            default:
+                throw new EloraException("Unrecognized task type \"" + type + "\": " + fileLine);
+        }
+    }
+
+    /**
+     * Builds a Deadline from a "D" save-file line's fields.
+     *
+     * @param description The deadline's description field.
+     * @param parts All fields of the save-file line.
+     * @param fileLine The original line, for error messages.
+     * @return The constructed Deadline.
+     * @throws EloraException If the date field is missing or unreadable.
+     */
+    private Deadline parseDeadlineLine(String description, String[] parts, String fileLine) throws EloraException {
+        if (parts.length < 4) {
+            throw new EloraException("Deadline line is missing its date: " + fileLine);
+        }
+        try {
+            return new Deadline(description, LocalDate.parse(parts[3]));
+        } catch (DateTimeParseException e) {
+            throw new EloraException("Deadline line has an unreadable date: " + fileLine);
+        }
+    }
+
+    /**
+     * Builds an Event from an "E" save-file line's fields.
+     *
+     * @param description The event's description field.
+     * @param parts All fields of the save-file line.
+     * @param fileLine The original line, for error messages.
+     * @return The constructed Event.
+     * @throws EloraException If the from/to fields are missing.
+     */
+    private Event parseEventLine(String description, String[] parts, String fileLine) throws EloraException {
+        if (parts.length < 5) {
+            throw new EloraException("Event line is missing its from/to times: " + fileLine);
+        }
+        return new Event(description, parts[3], parts[4]);
     }
 }
