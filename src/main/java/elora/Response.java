@@ -10,6 +10,14 @@ public final class Response {
     private final String text;
     private final boolean error;
 
+    /**
+     * Creates a Response. Private since callers must go through
+     * {@link #of(String)} or {@link #error(String)} to make the error
+     * flag explicit at every call site.
+     *
+     * @param text The reply text.
+     * @param error Whether this reply reports an error.
+     */
     private Response(String text, boolean error) {
         this.text = text;
         this.error = error;
@@ -35,10 +43,20 @@ public final class Response {
         return new Response(text, true);
     }
 
+    /**
+     * Returns this response's reply text.
+     *
+     * @return The text to show the user.
+     */
     public String getText() {
         return text;
     }
 
+    /**
+     * Returns whether this response reports an error.
+     *
+     * @return true if this response was created via {@link #error(String)}.
+     */
     public boolean isError() {
         return error;
     }

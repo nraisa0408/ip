@@ -71,6 +71,11 @@ public class TaskList {
         return tasks.size();
     }
 
+    /**
+     * Returns the backing list of every task currently held.
+     *
+     * @return The full task list, by reference (not a copy).
+     */
     public ArrayList<Task> getAll() {
         return tasks;
     }

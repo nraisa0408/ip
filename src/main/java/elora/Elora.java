@@ -3,12 +3,12 @@ package elora;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.EnumMap;
+import java.util.Map;
 
-import elora.task.Deadline;
-import elora.task.Event;
 import elora.task.Task;
+import elora.task.TaskFactory;
 import elora.task.TaskList;
-import elora.task.Todo;
 
 /**
  * Entry point and main command loop for the Elora chatbot: a personal
@@ -20,14 +20,12 @@ import elora.task.Todo;
  */
 public class Elora {
     private static final String DATA_FILE_PATH = "data" + File.separator + "elora.txt";
-    private static final String BY_DELIMITER = " /by ";
-    private static final String FROM_DELIMITER = " /from ";
-    private static final String TO_DELIMITER = " /to ";
-    private static final String RESERVED_CHARACTER = "|";
 
-    private Storage storage;
-    private TaskList tasks;
-    private Ui ui;
+    private final Storage storage;
+    private final TaskList tasks;
+    private final Ui ui;
+    private final TaskFactory taskFactory = new TaskFactory();
+    private final Map<CommandType, CommandHandler> commandHandlers = buildCommandHandlers();
 
     /**
      * Creates an Elora instance, loading any previously saved tasks from
@@ -49,30 +47,49 @@ public class Elora {
     }
 
     /**
-     * Runs the main command loop: greets the user, then repeatedly reads
-     * a command, executes it, and prints the result, until the user
+     * Runs the main command loop: greets the user, then repeatedly reads,
+     * executes, and prints the result of one command, until the user
      * types "bye".
      */
     public void run() {
         System.out.println(ui.welcomeMessage());
+        printStartupWarningsIfAny();
+        boolean isExit = false;
+        while (!isExit) {
+            isExit = runOneCommand();
+        }
+        ui.closeScanner();
+    }
+
+    /**
+     * Prints a warning to the console if the save file had lines that
+     * couldn't be understood on load.
+     */
+    private void printStartupWarningsIfAny() {
         if (!storage.getLoadWarnings().isEmpty()) {
             System.out.println(ui.corruptedLinesWarning(storage.getLoadWarnings()));
         }
+    }
+
+    /**
+     * Reads one line of console input, executes it, and prints the
+     * result (or the error message, if it failed), framed by divider
+     * lines.
+     *
+     * @return true if that command was "bye", signalling the loop to stop.
+     */
+    private boolean runOneCommand() {
+        String input = ui.readCommand();
+        ui.showLine();
         boolean isExit = false;
-        while (!isExit) {
-            String input = ui.readCommand();
-            ui.showLine();
-
-            try {
-                System.out.println(executeCommand(input));
-                isExit = isExitCommand(input);
-            } catch (EloraException e) {
-                System.out.println(e.getMessage());
-            }
-
-            ui.showLine();
+        try {
+            System.out.println(executeCommand(input));
+            isExit = isExitCommand(input);
+        } catch (EloraException e) {
+            System.out.println(e.getMessage());
         }
-        ui.closeScanner();
+        ui.showLine();
+        return isExit;
     }
 
     /**
@@ -120,45 +137,45 @@ public class Elora {
     }
 
     /**
-     * Parses and executes a single line of user input against the task
-     * list, returning Elora's reply.
+     * Parses a single line of user input and looks up (then runs) the
+     * handler registered for its command type.
      *
      * @param input The full line of user input.
      * @return Elora's reply to that input.
      * @throws EloraException If the input can't be understood or acted on.
      */
     private String executeCommand(String input) throws EloraException {
-        String commandWord = Parser.getCommandWord(input);
         String arguments = Parser.getArguments(input);
-        CommandType commandType = Parser.parseCommandType(commandWord);
-
-        switch (commandType) {
-            case BYE:
-                return ui.goodbyeMessage();
-            case LIST:
-                return ui.taskListMessage(tasks);
-            case MARK:
-                return handleMark(arguments);
-            case UNMARK:
-                return handleUnmark(arguments);
-            case DELETE:
-                return handleDelete(arguments);
-            case TODO:
-                return handleTodo(arguments);
-            case DEADLINE:
-                return handleDeadline(arguments);
-            case EVENT:
-                return handleEvent(arguments);
-            case ON:
-                return handleOn(arguments);
-            case FIND:
-                return handleFind(arguments);
-            case SORT:
-                return handleSort();
-            default:
-                throw new EloraException(
-                        "Hold on - I don't recognize that one yet. Could you rephrase it?");
+        CommandType commandType = Parser.parseCommandType(Parser.getCommandWord(input));
+        CommandHandler handler = commandHandlers.get(commandType);
+        if (handler == null) {
+            throw new EloraException(
+                    "Hold on - I don't recognize that one yet. Could you rephrase it?");
         }
+        return handler.handle(arguments);
+    }
+
+    /**
+     * Builds the lookup table from command type to the method that
+     * handles it, used by {@link #executeCommand(String)} in place of a
+     * long switch statement.
+     *
+     * @return The command type to handler mapping.
+     */
+    private Map<CommandType, CommandHandler> buildCommandHandlers() {
+        Map<CommandType, CommandHandler> handlers = new EnumMap<>(CommandType.class);
+        handlers.put(CommandType.BYE, arguments -> ui.goodbyeMessage());
+        handlers.put(CommandType.LIST, arguments -> ui.taskListMessage(tasks));
+        handlers.put(CommandType.MARK, this::handleMark);
+        handlers.put(CommandType.UNMARK, this::handleUnmark);
+        handlers.put(CommandType.DELETE, this::handleDelete);
+        handlers.put(CommandType.TODO, this::handleTodo);
+        handlers.put(CommandType.DEADLINE, this::handleDeadline);
+        handlers.put(CommandType.EVENT, this::handleEvent);
+        handlers.put(CommandType.ON, this::handleOn);
+        handlers.put(CommandType.FIND, this::handleFind);
+        handlers.put(CommandType.SORT, arguments -> handleSort());
+        return handlers;
     }
 
     /**
@@ -169,9 +186,8 @@ public class Elora {
      * @throws EloraException If the index is missing, invalid, or out of range.
      */
     private String handleMark(String arguments) throws EloraException {
-        int index = parseTaskIndex(arguments,
-                "Hold on - which task should I mark done? Give me a number, like mark 2.");
-        Task task = tasks.get(index);
+        Task task = tasks.get(parseTaskIndex(arguments,
+                "Hold on - which task should I mark done? Give me a number, like mark 2."));
         task.markAsDone();
         storage.save(tasks.getAll());
         return ui.taskMarkedMessage(task);
@@ -185,9 +201,8 @@ public class Elora {
      * @throws EloraException If the index is missing, invalid, or out of range.
      */
     private String handleUnmark(String arguments) throws EloraException {
-        int index = parseTaskIndex(arguments,
-                "Hold on - which task should I unmark? Give me a number, like unmark 2.");
-        Task task = tasks.get(index);
+        Task task = tasks.get(parseTaskIndex(arguments,
+                "Hold on - which task should I unmark? Give me a number, like unmark 2."));
         task.markAsNotDone();
         storage.save(tasks.getAll());
         return ui.taskUnmarkedMessage(task);
@@ -201,9 +216,8 @@ public class Elora {
      * @throws EloraException If the index is missing, invalid, or out of range.
      */
     private String handleDelete(String arguments) throws EloraException {
-        int index = parseTaskIndex(arguments,
-                "Hold on - which task should I delete? Give me a number, like delete 2.");
-        Task removed = tasks.remove(index);
+        Task removed = tasks.remove(parseTaskIndex(arguments,
+                "Hold on - which task should I delete? Give me a number, like delete 2."));
         storage.save(tasks.getAll());
         return ui.taskDeletedMessage(removed, tasks.size());
     }
@@ -216,15 +230,7 @@ public class Elora {
      * @throws EloraException If the description is missing, invalid, or a duplicate.
      */
     private String handleTodo(String arguments) throws EloraException {
-        if (arguments.isEmpty()) {
-            throw new EloraException(
-                    "Hold on - a todo needs a description. What would you like to remember?");
-        }
-        validateNoReservedCharacter(arguments);
-        Task task = new Todo(arguments);
-        addTaskIfNotDuplicate(task);
-        storage.save(tasks.getAll());
-        return ui.taskAddedMessage(task, tasks.size());
+        return addAndReport(taskFactory.createTodo(arguments));
     }
 
     /**
@@ -236,39 +242,7 @@ public class Elora {
      *     or the resulting task is a duplicate.
      */
     private String handleDeadline(String arguments) throws EloraException {
-        if (arguments.isEmpty()) {
-            throw new EloraException("Hold on - a deadline needs a description too. What's due?");
-        }
-        if (!arguments.contains(BY_DELIMITER)) {
-            throw new EloraException("Hold on - I'll need a /by time to know when this"
-                    + " is due. Try: deadline return book /by Sunday");
-        }
-        if (countOccurrences(arguments, BY_DELIMITER) > 1) {
-            throw new EloraException(
-                    "Hold on - I see more than one /by. Please give just one due date.");
-        }
-        String[] parts = arguments.split(BY_DELIMITER, 2);
-        String description = parts[0].trim();
-        String byString = parts[1].trim();
-        if (description.isEmpty()) {
-            throw new EloraException("Hold on - a deadline needs a description too. What's due?");
-        }
-        if (byString.isEmpty()) {
-            throw new EloraException(
-                    "Hold on - you've given me a /by, but no actual date. When's this due?");
-        }
-        validateNoReservedCharacter(description);
-        LocalDate by;
-        try {
-            by = LocalDate.parse(byString);
-        } catch (DateTimeParseException e) {
-            throw new EloraException(
-                    "Hold on - I don't understand that date. Please use yyyy-mm-dd, like 2019-10-15.");
-        }
-        Task task = new Deadline(description, by);
-        addTaskIfNotDuplicate(task);
-        storage.save(tasks.getAll());
-        return ui.taskAddedMessage(task, tasks.size());
+        return addAndReport(taskFactory.createDeadline(arguments));
     }
 
     /**
@@ -281,43 +255,21 @@ public class Elora {
      *     invalid, the event ends before it starts, or it's a duplicate.
      */
     private String handleEvent(String arguments) throws EloraException {
-        if (arguments.isEmpty()) {
-            throw new EloraException("Hold on - an event needs a description. What's happening?");
-        }
-        if (!arguments.contains(FROM_DELIMITER)) {
-            throw new EloraException("Hold on - I'll need a /from time to know when this"
-                    + " starts. Try: event meeting /from Mon 2pm /to 4pm");
-        }
-        if (countOccurrences(arguments, FROM_DELIMITER) > 1) {
-            throw new EloraException(
-                    "Hold on - I see more than one /from. Please give just one start time.");
-        }
-        String[] fromParts = arguments.split(FROM_DELIMITER, 2);
-        String description = fromParts[0].trim();
-        if (description.isEmpty()) {
-            throw new EloraException("Hold on - an event needs a description. What's happening?");
-        }
-        if (!fromParts[1].contains(TO_DELIMITER)) {
-            throw new EloraException("Hold on - I still need a /to time to know when this ends.");
-        }
-        if (countOccurrences(fromParts[1], TO_DELIMITER) > 1) {
-            throw new EloraException(
-                    "Hold on - I see more than one /to. Please give just one end time.");
-        }
-        String[] toParts = fromParts[1].split(TO_DELIMITER, 2);
-        String from = toParts[0].trim();
-        String to = toParts[1].trim();
-        if (from.isEmpty()) {
-            throw new EloraException("Hold on - when does this begin? I'm missing the /from time.");
-        }
-        if (to.isEmpty()) {
-            throw new EloraException("Hold on - and when does it end? I'm missing the /to time.");
-        }
-        validateNoReservedCharacter(description);
-        validateNoReservedCharacter(from);
-        validateNoReservedCharacter(to);
-        validateChronologicalOrder(from, to);
-        Task task = new Event(description, from, to);
+        return addAndReport(taskFactory.createEvent(arguments));
+    }
+
+    /**
+     * Adds a newly built task to the list (rejecting an exact duplicate),
+     * persists the list, and returns the standard "task added" message.
+     * Shared by the todo/deadline/event handlers, which only differ in
+     * how they build the task.
+     *
+     * @param task The task to add.
+     * @return The confirmation message.
+     * @throws EloraException If an equal task is already in the list, or
+     *     the list couldn't be saved.
+     */
+    private String addAndReport(Task task) throws EloraException {
         addTaskIfNotDuplicate(task);
         storage.save(tasks.getAll());
         return ui.taskAddedMessage(task, tasks.size());
@@ -402,71 +354,6 @@ public class Elora {
     }
 
     /**
-     * Rejects text containing the '|' character, since the save file
-     * uses " | " to separate fields; letting it through would corrupt
-     * the save file and shift fields when the file is next loaded.
-     *
-     * @param text The user-supplied text to check (a description,
-     *     or an event's from/to time).
-     * @throws EloraException If the text contains '|'.
-     */
-    private void validateNoReservedCharacter(String text) throws EloraException {
-        if (text.contains(RESERVED_CHARACTER)) {
-            throw new EloraException(
-                    "Hold on - task details can't contain the '|' character; "
-                    + "I use that internally to save your tasks.");
-        }
-    }
-
-    /**
-     * Counts non-overlapping occurrences of a delimiter in text, used to
-     * detect a parameter (like /by) given more than once before it's
-     * split on.
-     *
-     * @param text The text to search.
-     * @param delimiter The delimiter to count.
-     * @return The number of times delimiter occurs in text.
-     */
-    private static int countOccurrences(String text, String delimiter) {
-        return (text.length() - text.replace(delimiter, "").length()) / delimiter.length();
-    }
-
-    /**
-     * Rejects an event whose start and end are both parseable as plain
-     * ISO dates (yyyy-mm-dd) and out of order, i.e. the end date is the
-     * same as or before the start date. Event times are otherwise free
-     * text (e.g. "Mon 2pm"), so this check only fires when both sides
-     * happen to be dates; a free-text time is left unvalidated.
-     *
-     * @param from The event's start time, as typed by the user.
-     * @param to The event's end time, as typed by the user.
-     * @throws EloraException If both parse as dates and to isn't after from.
-     */
-    private void validateChronologicalOrder(String from, String to) throws EloraException {
-        LocalDate fromDate = tryParseDate(from);
-        LocalDate toDate = tryParseDate(to);
-        if (fromDate != null && toDate != null && !toDate.isAfter(fromDate)) {
-            throw new EloraException(
-                    "Hold on - an event's end date can't be the same as or before its start date.");
-        }
-    }
-
-    /**
-     * Parses text as an ISO date (yyyy-mm-dd), returning null instead of
-     * throwing if it isn't one, since event times are usually free text.
-     *
-     * @param text The text to try to parse.
-     * @return The parsed date, or null if text isn't a valid ISO date.
-     */
-    private static LocalDate tryParseDate(String text) {
-        try {
-            return LocalDate.parse(text);
-        } catch (DateTimeParseException e) {
-            return null;
-        }
-    }
-
-    /**
      * Adds a task to the list, unless an equal task (same type,
      * description, and any type-specific fields like a due date) is
      * already present.
@@ -480,6 +367,24 @@ public class Elora {
                     "Hold on - that exact task is already on your list. No need to add it twice.");
         }
         tasks.add(task);
+    }
+
+    /**
+     * A single command's execution logic: takes the raw argument text
+     * following the command word and returns Elora's reply. Implemented
+     * either by a handleX() method reference or, for trivial commands
+     * with no real logic, an inline lambda.
+     */
+    @FunctionalInterface
+    private interface CommandHandler {
+        /**
+         * Executes this command against the current task list.
+         *
+         * @param arguments The text after the command word.
+         * @return The reply to show the user.
+         * @throws EloraException If the command can't be completed.
+         */
+        String handle(String arguments) throws EloraException;
     }
 
     /**

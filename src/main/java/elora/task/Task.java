@@ -46,6 +46,11 @@ public class Task {
         return (isDone ? "X" : " ");
     }
 
+    /**
+     * Returns this task's description.
+     *
+     * @return The description given when this task was created.
+     */
     public String getDescription() {
         return description;
     }

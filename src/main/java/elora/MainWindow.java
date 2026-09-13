@@ -31,6 +31,11 @@ public class MainWindow {
 
     private final Image eloraImage = new Image(getClass().getResourceAsStream("/images/elora.png"));
 
+    /**
+     * Called automatically by the FXMLLoader once this window's fields
+     * are injected: keeps the scroll pane pinned to the newest message,
+     * and crops the header avatar to a circle.
+     */
     @FXML
     private void initialize() {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());

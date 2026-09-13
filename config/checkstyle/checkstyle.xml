@@ -150,6 +150,25 @@
     LENGTH and CODING CHECKS
     -->
 
+    <!-- Enforces the Single Level of Abstraction Principle by capping method/constructor
+         length: no method body should exceed 20 lines (blank lines don't count). -->
+    <module name="MethodLength">
+      <property name="max" value="20"/>
+      <property name="countEmpty" value="false"/>
+      <property name="tokens" value="METHOD_DEF, CTOR_DEF"/>
+    </module>
+
+    <!-- Caps how deeply if-statements may nest, to catch "arrow-head" code before it
+         happens: an if inside an if is fine, a third level should be extracted instead. -->
+    <module name="NestedIfDepth">
+      <property name="max" value="2"/>
+    </module>
+
+    <!-- Caps how deeply try-statements may nest, for the same reason. -->
+    <module name="NestedTryDepth">
+      <property name="max" value="1"/>
+    </module>
+
     <!-- Checks that array type declarations follow Java Style
       Java style: public static void main(String[] args) // Allowed
       C style:    public static void main(String args[]) // Not allowed

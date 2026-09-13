@@ -23,6 +23,11 @@ public class Deadline extends Task {
         this.by = by;
     }
 
+    /**
+     * Returns this deadline's due date.
+     *
+     * @return The date this task is due by.
+     */
     public LocalDate getBy() {
         return by;
     }
