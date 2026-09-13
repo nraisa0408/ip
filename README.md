@@ -40,6 +40,5 @@ Java 25 is required. On macOS with SDKMAN, switch to it with `sdk use java 25.0.
 
 - This project was built with the assistance of [Claude Code](https://claude.com/claude-code) (Anthropic),
   used throughout development as an AI pair-programmer for the JavaFX GUI redesign, error-handling
-  improvements, the JUnit test suite, and this documentation.
-- The Elora mascot artwork (`elora mascot.png`, cropped for use as the in-app avatar) was provided by
-  the project author.
+  improvements, and this documentation.
+- The Elora mascot artwork (`elora mascot.png`, cropped for use as the in-app avatar) was initially generated using ChatGPT and then cropped out.
