@@ -22,6 +22,12 @@ public class Event extends Task {
         this.to = to;
     }
 
+    /**
+     * Returns this event's representation for the save file, as
+     * "E | &lt;base task format&gt; | &lt;from&gt; | &lt;to&gt;".
+     *
+     * @return The save-file line for this event.
+     */
     @Override
     public String toSaveFormat() {
         return "E | " + super.toSaveFormat() + " | " + from + " | " + to;
@@ -50,6 +56,12 @@ public class Event extends Task {
         return from.equals(that.from) && to.equals(that.to);
     }
 
+    /**
+     * Returns a hash code consistent with {@link #equals(Object)}: equal
+     * events (same description, from, and to) always hash the same.
+     *
+     * @return This event's hash code.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), from, to);

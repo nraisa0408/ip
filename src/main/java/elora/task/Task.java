@@ -120,6 +120,12 @@ public class Task {
         return description.equals(that.description);
     }
 
+    /**
+     * Returns a hash code consistent with {@link #equals(Object)}: equal
+     * tasks (same concrete type and description) always hash the same.
+     *
+     * @return This task's hash code.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(getClass(), description);

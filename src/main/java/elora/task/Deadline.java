@@ -43,11 +43,23 @@ public class Deadline extends Task {
         return by.equals(date);
     }
 
+    /**
+     * Returns this deadline's due date, used to sort it chronologically
+     * against other tasks.
+     *
+     * @return This deadline's due date.
+     */
     @Override
     public LocalDate getSortDate() {
         return by;
     }
 
+    /**
+     * Returns this deadline's representation for the save file, as
+     * "D | &lt;base task format&gt; | &lt;due date&gt;".
+     *
+     * @return The save-file line for this deadline.
+     */
     @Override
     public String toSaveFormat() {
         return "D | " + super.toSaveFormat() + " | " + by;
@@ -76,6 +88,12 @@ public class Deadline extends Task {
         return by.equals(that.by);
     }
 
+    /**
+     * Returns a hash code consistent with {@link #equals(Object)}: equal
+     * deadlines (same description and due date) always hash the same.
+     *
+     * @return This deadline's hash code.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), by);

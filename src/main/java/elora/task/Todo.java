@@ -14,6 +14,12 @@ public class Todo extends Task {
         super(description);
     }
 
+    /**
+     * Returns this todo's representation for the save file, as
+     * "T | &lt;base task format&gt;".
+     *
+     * @return The save-file line for this todo.
+     */
     @Override
     public String toSaveFormat() {
         return "T | " + super.toSaveFormat();
