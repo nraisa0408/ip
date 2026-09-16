@@ -1,5 +1,6 @@
 package elora;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -9,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 
 /**
  * Controller for MainWindow.fxml: the chat window that displays the
@@ -73,7 +75,12 @@ public class MainWindow {
                 DialogBox.getEloraDialog(response.getText(), eloraImage, response.isError()));
         userInput.clear();
         if (elora.isExitCommand(input)) {
-            Platform.exit();
+            // Give the scene graph one render pulse to paint the goodbye
+            // bubble before the toolkit shuts down; exiting immediately
+            // here would close the window before it was ever drawn.
+            PauseTransition delay = new PauseTransition(Duration.seconds(1));
+            delay.setOnFinished(event -> Platform.exit());
+            delay.play();
         }
     }
 }
