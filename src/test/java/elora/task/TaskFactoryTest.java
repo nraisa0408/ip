@@ -73,4 +73,34 @@ class TaskFactoryTest {
         Event event = taskFactory.createEvent("meeting /from 4pm /to 2pm");
         assertEquals(new Event("meeting", "4pm", "2pm"), event);
     }
+
+    @Test
+    void createEvent_validIsoDateRange_returnsMatchingEvent() throws EloraException {
+        Event event = taskFactory.createEvent("trip /from 2029-01-01 /to 2029-01-02");
+        assertEquals(new Event("trip", "2029-01-01", "2029-01-02"), event);
+    }
+
+    @Test
+    void createEvent_fromLooksLikeDateButIsNotReal_throws() {
+        assertThrows(EloraException.class, () ->
+                taskFactory.createEvent("trip /from 2029-01-32 /to 2029-02-01"));
+    }
+
+    @Test
+    void createEvent_toLooksLikeDateButIsNotReal_throws() {
+        assertThrows(EloraException.class, () ->
+                taskFactory.createEvent("trip /from 2029-01-01 /to 2029-01-32"));
+    }
+
+    @Test
+    void createEvent_bothFromAndToLookLikeDatesButAreNotReal_throws() {
+        assertThrows(EloraException.class, () ->
+                taskFactory.createEvent("test /from 2020-01-40 /to 2020-01-41"));
+    }
+
+    @Test
+    void createEvent_nonExistentLeapDayShapedDate_throws() {
+        assertThrows(EloraException.class, () ->
+                taskFactory.createEvent("trip /from 2029-02-29 /to 2029-03-01"));
+    }
 }

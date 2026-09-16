@@ -2,6 +2,7 @@ package elora.task;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.regex.Pattern;
 
 import elora.EloraException;
 
@@ -19,6 +20,15 @@ public class TaskFactory {
     private static final String FROM_DELIMITER = " /from ";
     private static final String TO_DELIMITER = " /to ";
     private static final String RESERVED_CHARACTER = "|";
+
+    /**
+     * Matches text with the exact shape of an ISO date (yyyy-mm-dd), whether
+     * or not it's a real calendar date. Used to tell apart an event time
+     * that's meant to be a date but got the day/month wrong (e.g.
+     * "2029-01-32", which should be rejected) from genuine free text (e.g.
+     * "Mon 2pm", which should be accepted as-is).
+     */
+    private static final Pattern ISO_DATE_SHAPE = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
 
     /**
      * Builds a Todo from a todo command's arguments.
@@ -79,10 +89,26 @@ public class TaskFactory {
         String to = requireNonEmpty(toParts[1].trim(),
                 "Hold on - and when does it end? I'm missing the /to time.");
         requireNoReservedCharacter(description);
+        requireValidEventTimes(from, to);
+        return new Event(description, from, to);
+    }
+
+    /**
+     * Validates an event's start and end times: neither may contain the
+     * reserved '|' character, neither may have the shape of an ISO date
+     * (yyyy-mm-dd) without being a real one, and if both are ISO dates,
+     * to must come after from.
+     *
+     * @param from The event's start time, as typed by the user.
+     * @param to The event's end time, as typed by the user.
+     * @throws EloraException If any of the above checks fail.
+     */
+    private static void requireValidEventTimes(String from, String to) throws EloraException {
         requireNoReservedCharacter(from);
         requireNoReservedCharacter(to);
-        requireChronologicalOrder(from, to);
-        return new Event(description, from, to);
+        requireValidIfDateShaped(from, "/from");
+        requireValidIfDateShaped(to, "/to");
+        requireChronologicalOrder(tryParseIsoDate(from), tryParseIsoDate(to));
     }
 
     /**
@@ -190,16 +216,37 @@ public class TaskFactory {
      * text (e.g. "Mon 2pm"), so this check only fires when both sides
      * happen to be dates; a free-text time is left unvalidated.
      *
-     * @param from The event's start time, as typed by the user.
-     * @param to The event's end time, as typed by the user.
-     * @throws EloraException If both parse as dates and to isn't after from.
+     * @param fromDate The event's start time, parsed as a date, or null if
+     *     it isn't one.
+     * @param toDate The event's end time, parsed as a date, or null if it
+     *     isn't one.
+     * @throws EloraException If both are dates and toDate isn't after fromDate.
      */
-    private static void requireChronologicalOrder(String from, String to) throws EloraException {
-        LocalDate fromDate = tryParseIsoDate(from);
-        LocalDate toDate = tryParseIsoDate(to);
+    private static void requireChronologicalOrder(LocalDate fromDate, LocalDate toDate) throws EloraException {
         if (fromDate != null && toDate != null && !toDate.isAfter(fromDate)) {
             throw new EloraException(
                     "Hold on - an event's end date can't be the same as or before its start date.");
+        }
+    }
+
+    /**
+     * Rejects text that has the exact shape of an ISO date (yyyy-mm-dd) but
+     * isn't a real calendar date, e.g. "2029-01-32" or "2028-02-30". Text
+     * that doesn't have that shape at all (e.g. "Mon 2pm") is left alone,
+     * since event times are otherwise free text.
+     *
+     * @param text The event's /from or /to text, as typed by the user.
+     * @param label Which field text is, for the error message ("/from" or "/to").
+     * @throws EloraException If text has the yyyy-mm-dd shape but isn't a valid date.
+     */
+    private static void requireValidIfDateShaped(String text, String label) throws EloraException {
+        if (!ISO_DATE_SHAPE.matcher(text).matches()) {
+            return;
+        }
+        if (tryParseIsoDate(text) == null) {
+            throw new EloraException(
+                    "Hold on - \"" + text + "\" looks like a yyyy-mm-dd date for " + label
+                    + ", but it isn't a real calendar date.");
         }
     }
 

@@ -69,7 +69,11 @@ Now you have 3 tasks in the list.
 ```
 
 If both `START` and `END` happen to be `yyyy-mm-dd` dates, Elora also checks that the event
-doesn't end before (or at the same time as) it starts.
+doesn't end before (or at the same time as) it starts, and rejects a date that's the right
+shape but doesn't exist (e.g. `2029-01-32`). When `START` and `END` are dates, the event also
+takes part in `on` and `sort` below, using `START` as its sort date and `[START, END]` as the
+range of dates it's considered to occur on. Events with free-text times (e.g. `Mon 2pm`) are
+left out of both, since they have no date Elora can compare.
 
 ### Listing all tasks: `list`
 
@@ -107,7 +111,8 @@ Example: `find book`
 
 ### Viewing tasks on a date: `on`
 
-Shows every deadline due on the given date.
+Shows every deadline due on the given date, and every date-ranged event (see [Adding an
+event](#adding-an-event-event)) whose `[START, END]` range includes it.
 
 Format: `on yyyy-mm-dd`
 
@@ -115,8 +120,9 @@ Example: `on 2019-10-15`
 
 ### Sorting tasks by date: `sort`
 
-Sorts your list so tasks with a due date come first, soonest due first; everything else keeps
-its original order at the end.
+Sorts your list so tasks with a date (deadlines by their due date, date-ranged events by their
+start date) come first, soonest first; everything else (todos, and events with free-text
+times) keeps its original order at the end.
 
 Example: `sort`
 

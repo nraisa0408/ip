@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 
@@ -46,6 +47,43 @@ class EventTest {
     @Test
     void getSortDate_event_returnsNull() {
         Event event = new Event("team meeting", "Mon 2pm", "4pm");
+        assertNull(event.getSortDate());
+    }
+
+    @Test
+    void isOccurringOn_dateWithinIsoRange_returnsTrue() {
+        Event event = new Event("trip", "2029-01-01", "2029-01-05");
+        assertTrue(event.isOccurringOn(LocalDate.parse("2029-01-03")));
+    }
+
+    @Test
+    void isOccurringOn_dateAtStartOrEndOfIsoRange_returnsTrue() {
+        Event event = new Event("trip", "2029-01-01", "2029-01-05");
+        assertTrue(event.isOccurringOn(LocalDate.parse("2029-01-01")));
+        assertTrue(event.isOccurringOn(LocalDate.parse("2029-01-05")));
+    }
+
+    @Test
+    void isOccurringOn_dateOutsideIsoRange_returnsFalse() {
+        Event event = new Event("trip", "2029-01-01", "2029-01-05");
+        assertFalse(event.isOccurringOn(LocalDate.parse("2029-01-06")));
+    }
+
+    @Test
+    void isOccurringOn_onlyFromIsIsoDate_returnsFalse() {
+        Event event = new Event("trip", "2029-01-01", "next week");
+        assertFalse(event.isOccurringOn(LocalDate.parse("2029-01-01")));
+    }
+
+    @Test
+    void getSortDate_isoDateFrom_returnsFromDate() {
+        Event event = new Event("trip", "2029-01-01", "2029-01-05");
+        assertEquals(LocalDate.parse("2029-01-01"), event.getSortDate());
+    }
+
+    @Test
+    void getSortDate_onlyToIsIsoDate_returnsNull() {
+        Event event = new Event("trip", "next week", "2029-01-05");
         assertNull(event.getSortDate());
     }
 

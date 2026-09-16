@@ -17,8 +17,8 @@
     <stylesheets>
         <URL value="@styles.css" />
     </stylesheets>
-    <HBox fx:id="header" alignment="CENTER_LEFT" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0.0"
-          AnchorPane.rightAnchor="0.0">
+    <HBox fx:id="header" alignment="CENTER_LEFT" prefHeight="60.0" minHeight="60.0" maxHeight="60.0"
+          AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
         <ImageView fx:id="headerAvatar" fitHeight="36.0" fitWidth="36.0" preserveRatio="true">
             <image>
                 <Image url="@/images/elora.png" />
@@ -38,8 +38,8 @@
             </padding>
         </VBox>
     </ScrollPane>
-    <HBox fx:id="inputBar" alignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-          AnchorPane.rightAnchor="0.0">
+    <HBox fx:id="inputBar" alignment="CENTER" prefHeight="60.0" minHeight="60.0" maxHeight="60.0"
+          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
         <TextField fx:id="userInput" onAction="#handleUserInput" promptText="Type a command..."
                    HBox.hgrow="ALWAYS" />
         <Button fx:id="sendButton" mnemonicParsing="false" onAction="#handleUserInput" text="Send" />
